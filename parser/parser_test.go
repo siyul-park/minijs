@@ -2,7 +2,7 @@ package parser
 
 import (
 	"github.com/siyul-park/miniscript/ast"
-	lexer2 "github.com/siyul-park/miniscript/lexer"
+	"github.com/siyul-park/miniscript/lexer"
 	"github.com/siyul-park/miniscript/token"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -167,12 +167,12 @@ func TestParser_Parse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.source, func(t *testing.T) {
-			lexer := lexer2.New(tt.source)
-			parser := New(lexer)
+			l := lexer.New(tt.source)
+			p := New(l)
 
-			program, err := parser.Parse()
+			prg, err := p.Parse()
 			assert.NoError(t, err)
-			assert.Equal(t, tt.program, program)
+			assert.Equal(t, tt.program, prg)
 		})
 	}
 }
