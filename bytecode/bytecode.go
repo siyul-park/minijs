@@ -18,7 +18,7 @@ func (b *Bytecode) Append(instructions ...Instruction) {
 
 func (b *Bytecode) Instruction(offset int) (Instruction, int) {
 	if offset >= len(b.Instructions) {
-		return Instruction{}, 0
+		return nil, 0
 	}
 	typ := TypeOf(Opcode(b.Instructions[offset]))
 	width := typ.Width()

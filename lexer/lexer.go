@@ -21,8 +21,8 @@ func (l *Lexer) Next() token.Token {
 	switch l.peek(0) {
 	case rune(0):
 		tk = token.NewToken(token.EOF, "")
-	case '"':
-		tk = l.string()
+	case '"', '\'':
+		tk = l.string(l.peek(0))
 	case '+':
 		tk = token.NewToken(token.PLUS, string(l.pop()))
 	case '-':
@@ -128,8 +128,8 @@ func (l *Lexer) identifier() token.Token {
 	return token.NewToken(token.TypeOf(string(literal)), string(literal))
 }
 
-func (l *Lexer) string() token.Token {
-	if l.peek(0) != '"' {
+func (l *Lexer) string(delim rune) token.Token {
+	if l.peek(0) != delim {
 		return token.NewToken(token.ILLEGAL, "Unterminated string")
 	}
 	l.pop()
@@ -140,7 +140,7 @@ func (l *Lexer) string() token.Token {
 		if ch == rune(0) {
 			return token.NewToken(token.ILLEGAL, "Unterminated string")
 		}
-		if ch == '"' {
+		if ch == delim {
 			l.pop()
 			break
 		}

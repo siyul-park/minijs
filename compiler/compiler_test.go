@@ -36,6 +36,20 @@ func TestCompiler_Compile(t *testing.T) {
 				bytecode.New(bytecode.F64MUL),
 			},
 		},
+		{
+			node: &ast.Program{Nodes: []ast.Node{
+				&ast.InfixExpression{
+					Token: token.NewToken(token.PLUS, "+"),
+					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
+				},
+			}},
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(12345)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(67890)),
+				bytecode.New(bytecode.F64ADD),
+			},
+		},
 	}
 
 	for _, tt := range tests {

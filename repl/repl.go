@@ -54,6 +54,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			if _, err := fmt.Fprintln(writer, err); err != nil {
 				return err
 			}
+			continue
 		}
 
 		i := interpreter.New(code)
@@ -61,6 +62,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			if _, err := fmt.Fprintln(writer, err); err != nil {
 				return err
 			}
+			continue
 		}
 
 		if _, err := fmt.Fprintln(writer, i.Peek(0)); err != nil {

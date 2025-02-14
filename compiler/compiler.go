@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/siyul-park/minijs/token"
@@ -36,7 +37,7 @@ func (c *Compiler) compile(node ast.Node) error {
 	case *ast.InfixExpression:
 		return c.infixExpression(node)
 	default:
-		return errors.New("unsupported node type")
+		return fmt.Errorf("unsupported operand type: %T", node)
 	}
 }
 
@@ -50,7 +51,14 @@ func (c *Compiler) program(node *ast.Program) error {
 }
 
 func (c *Compiler) number(node *ast.NumberLiteral) error {
-	c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
+	switch node.Token.Type {
+	case token.NAN:
+		c.emit(bytecode.F64LOAD, math.Float64bits(math.NaN()))
+	case token.INFINITY:
+		c.emit(bytecode.F64LOAD, math.Float64bits(math.Inf(1)))
+	default:
+		c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
+	}
 	return nil
 }
 
@@ -76,7 +84,9 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
 	if err := c.compile(node.Right); err != nil {
 		return err
 	}
-	if c.kind(node.Left) == types.KindFloat64 {
+
+	switch c.kind(node.Left) {
+	case types.KindFloat64:
 		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.F64ADD)
@@ -88,9 +98,13 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
 			c.emit(bytecode.F64DIV)
 		case token.MODULO:
 			c.emit(bytecode.F64MOD)
+		default:
+			return fmt.Errorf("invalid operator for float64: %s", node.Token.Type)
 		}
+	default:
+		return fmt.Errorf("unsupported operand type: %s", c.kind(node.Left))
 	}
-	return errors.New("invalid token")
+	return nil
 }
 
 func (c *Compiler) kind(node ast.Node) types.Kind {
@@ -105,7 +119,12 @@ func (c *Compiler) kind(node ast.Node) types.Kind {
 	case *ast.PrefixExpression:
 		return c.kind(node.Right)
 	case *ast.InfixExpression:
-		return c.kind(node.Left)
+		left := c.kind(node.Left)
+		right := c.kind(node.Right)
+		if left == right {
+			return left
+		}
+		return types.KindUnknown
 	}
 	return types.KindUnknown
 }
