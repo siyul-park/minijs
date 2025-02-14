@@ -48,7 +48,12 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		c := compiler.New(program)
+		stmts := program.Statements
+		if len(stmts) == 0 {
+			continue
+		}
+
+		c := compiler.New(stmts[0].Node)
 		code, err := c.Compile()
 		if err != nil {
 			if _, err := fmt.Fprintln(writer, err); err != nil {

@@ -24,7 +24,7 @@ func NewFloat64(value float64) Float64 {
 	return Float64{Value: value}
 }
 
-func (f Float64) Kind() Kind {
+func (v Float64) Kind() Kind {
 	return KindFloat64
 }
 

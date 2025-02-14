@@ -28,17 +28,19 @@ func (l *Lexer) Next() token.Token {
 	case '-':
 		tk = token.NewToken(token.MINUS, string(l.pop()))
 	case '*':
-		tk = token.NewToken(token.MULTIPLY, string(l.pop()))
+		tk = token.NewToken(token.ASTERISK, string(l.pop()))
 	case '/':
-		tk = token.NewToken(token.DIVIDE, string(l.pop()))
+		tk = token.NewToken(token.SLASH, string(l.pop()))
 	case '%':
-		tk = token.NewToken(token.MODULO, string(l.pop()))
+		tk = token.NewToken(token.PERCENT, string(l.pop()))
 	case '.':
-		tk = token.NewToken(token.PERIOD, string(l.pop()))
+		tk = token.NewToken(token.DOT, string(l.pop()))
 	case '(':
 		tk = token.NewToken(token.LPAREN, string(l.pop()))
 	case ')':
 		tk = token.NewToken(token.RPAREN, string(l.pop()))
+	case ';':
+		tk = token.NewToken(token.SEMICOLON, string(l.pop()))
 	default:
 		if unicode.IsDigit(l.peek(0)) {
 			tk = l.number()
@@ -68,7 +70,7 @@ func (l *Lexer) number() token.Token {
 			return token.NewToken(token.ILLEGAL, "Malformed exponent")
 		}
 		exponent := l.integer()
-		return token.NewToken(token.EXPONENTIAL, integer.Literal+"e"+sign+exponent.Literal)
+		return token.NewToken(token.NUMBER, integer.Literal+"e"+sign+exponent.Literal)
 	}
 
 	return integer
@@ -97,7 +99,7 @@ func (l *Lexer) integer() token.Token {
 		if len(literal) == 0 {
 			return token.NewToken(token.ILLEGAL, "Malformed binary")
 		}
-		return token.NewToken(token.BINARY, "0b"+string(literal))
+		return token.NewToken(token.NUMBER, "0b"+string(literal))
 	}
 
 	literal = append(literal, l.pop())
@@ -117,7 +119,7 @@ func (l *Lexer) integer() token.Token {
 		return token.NewToken(token.ILLEGAL, "Trailing underscore")
 	}
 
-	return token.NewToken(token.DECIMAL, string(literal))
+	return token.NewToken(token.NUMBER, string(literal))
 }
 
 func (l *Lexer) identifier() token.Token {

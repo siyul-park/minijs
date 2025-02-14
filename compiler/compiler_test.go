@@ -15,8 +15,36 @@ func TestCompiler_Compile(t *testing.T) {
 		instructions []bytecode.Instruction
 	}{
 		{
+			node: &ast.Program{
+				Statements: []*ast.Statement{
+					{
+						Node: &ast.NumberLiteral{
+							Token: token.NewToken(token.NUMBER, `1234567890`),
+							Value: 1234567890,
+						},
+					},
+				},
+			},
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1234567890)),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
+			node: &ast.Statement{
+				Node: &ast.NumberLiteral{
+					Token: token.NewToken(token.NUMBER, `1234567890`),
+					Value: 1234567890,
+				},
+			},
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1234567890)),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
 			node: &ast.NumberLiteral{
-				Token: token.NewToken(token.DECIMAL, `1234567890`),
+				Token: token.NewToken(token.NUMBER, `1234567890`),
 				Value: 1234567890,
 			},
 			instructions: []bytecode.Instruction{
@@ -24,12 +52,10 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 		},
 		{
-			node: &ast.Program{Nodes: []ast.Node{
-				&ast.PrefixExpression{
-					Token: token.NewToken(token.MINUS, "-"),
-					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1234567890`), Value: 1234567890},
-				},
-			}},
+			node: &ast.PrefixExpression{
+				Token: token.NewToken(token.MINUS, "-"),
+				Right: &ast.NumberLiteral{Token: token.NewToken(token.NUMBER, `1234567890`), Value: 1234567890},
+			},
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1234567890)),
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(-1)),
@@ -37,13 +63,11 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 		},
 		{
-			node: &ast.Program{Nodes: []ast.Node{
-				&ast.InfixExpression{
-					Token: token.NewToken(token.PLUS, "+"),
-					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
-					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
-				},
-			}},
+			node: &ast.InfixExpression{
+				Token: token.NewToken(token.PLUS, "+"),
+				Left:  &ast.NumberLiteral{Token: token.NewToken(token.NUMBER, `12345`), Value: 12345},
+				Right: &ast.NumberLiteral{Token: token.NewToken(token.NUMBER, `67890`), Value: 67890},
+			},
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(12345)),
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(67890)),

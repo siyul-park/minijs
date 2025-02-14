@@ -10,7 +10,11 @@ type Node interface {
 }
 
 type Program struct {
-	Nodes []Node
+	Statements []*Statement
+}
+
+type Statement struct {
+	Node Node
 }
 
 type NumberLiteral struct {
@@ -46,10 +50,15 @@ type InfixExpression struct {
 
 func (p *Program) String() string {
 	var out bytes.Buffer
-	for _, n := range p.Nodes {
-		out.WriteString(n.String())
+	for _, stmt := range p.Statements {
+		out.WriteString(stmt.String())
+		out.WriteString("\n")
 	}
 	return out.String()
+}
+
+func (n *Statement) String() string {
+	return n.Node.String() + ";"
 }
 
 func (n *NumberLiteral) String() string {

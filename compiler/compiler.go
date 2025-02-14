@@ -30,6 +30,8 @@ func (c *Compiler) compile(node ast.Node) error {
 	switch node := node.(type) {
 	case *ast.Program:
 		return c.program(node)
+	case *ast.Statement:
+		return c.statement(node)
 	case *ast.NumberLiteral:
 		return c.number(node)
 	case *ast.PrefixExpression:
@@ -42,19 +44,27 @@ func (c *Compiler) compile(node ast.Node) error {
 }
 
 func (c *Compiler) program(node *ast.Program) error {
-	for _, n := range node.Nodes {
-		if err := c.compile(n); err != nil {
+	for _, n := range node.Statements {
+		if err := c.statement(n); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+func (c *Compiler) statement(node *ast.Statement) error {
+	if err := c.compile(node.Node); err != nil {
+		return err
+	}
+	c.emit(bytecode.POP)
+	return nil
+}
+
 func (c *Compiler) number(node *ast.NumberLiteral) error {
-	switch node.Token.Type {
-	case token.NAN:
+	switch node.Token.Literal {
+	case "NaN":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.NaN()))
-	case token.INFINITY:
+	case "Infinity":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.Inf(1)))
 	default:
 		c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
@@ -92,11 +102,11 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
 			c.emit(bytecode.F64ADD)
 		case token.MINUS:
 			c.emit(bytecode.F64SUB)
-		case token.MULTIPLY:
+		case token.ASTERISK:
 			c.emit(bytecode.F64MUL)
-		case token.DIVIDE:
+		case token.SLASH:
 			c.emit(bytecode.F64DIV)
-		case token.MODULO:
+		case token.PERCENT:
 			c.emit(bytecode.F64MOD)
 		default:
 			return fmt.Errorf("invalid operator for float64: %s", node.Token.Type)
@@ -109,11 +119,8 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
 
 func (c *Compiler) kind(node ast.Node) types.Kind {
 	switch node := node.(type) {
-	case *ast.Program:
-		if len(node.Nodes) == 0 {
-			return types.KindVoid
-		}
-		return c.kind(node.Nodes[len(node.Nodes)-1])
+	case *ast.Program, *ast.Statement:
+		return types.KindVoid
 	case *ast.NumberLiteral:
 		return types.KindFloat64
 	case *ast.PrefixExpression:

@@ -3,40 +3,71 @@ package token
 type Type string
 
 type Token struct {
-	Type    Type
-	Literal string
+	Type    Type   // 토큰 타입
+	Literal string // 토큰의 실제 값
 }
 
 const (
 	EOF     Type = "EOF"
 	ILLEGAL Type = "ILLEGAL"
 
-	DECIMAL     Type = "DECIMAL"
-	EXPONENTIAL Type = "EXPONENTIAL"
-	BINARY      Type = "BINARY"
-	STRING      Type = "STRING"
-	FALSE       Type = "FALSE"
-	TRUE        Type = "TRUE"
-	IDENTIFIER  Type = "IDENTIFIER"
+	IDENTIFIER Type = "IDENTIFIER"
+	NUMBER     Type = "NUMBER"
+	STRING     Type = "STRING"
+	BOOLEAN    Type = "BOOLEAN"
+	NULL       Type = "NULL"
 
-	PLUS     Type = "+"
-	MINUS    Type = "-"
-	MULTIPLY Type = "*"
-	DIVIDE   Type = "/"
-	MODULO   Type = "%"
-	PERIOD   Type = "."
-	LPAREN   Type = "("
-	RPAREN   Type = ")"
+	PLUS     Type = "＋"
+	MINUS    Type = "−"
+	ASTERISK Type = "*"
+	SLASH    Type = "/"
+	PERCENT  Type = "％"
+	EQUAL    Type = "＝"
+	EQ       Type = "=="
+	LT       Type = "＜"
+	GT       Type = "＞"
+	BANG     Type = "!"
+	AMP      Type = "&"
+	VBAR     Type = "|"
 
-	NAN      Type = "NAN"
-	INFINITY Type = "INFINITY"
+	LPAREN    Type = "("
+	RPAREN    Type = ")"
+	LBRACE    Type = "{"
+	RBRACE    Type = "}"
+	COMMA     Type = ","
+	SEMICOLON Type = ";"
+	DOT       Type = "."
+
+	IF     Type = "if"
+	ELSE   Type = "else"
+	WHILE  Type = "while"
+	FOR    Type = "for"
+	RETURN Type = "return"
+
+	VAR   Type = "var"
+	LET   Type = "let"
+	CONST Type = "const"
+	FUNC  Type = "function"
 )
 
 var types = map[string]Type{
-	"true":     TRUE,
-	"false":    FALSE,
-	"NaN":      NAN,
-	"Infinity": INFINITY,
+	"true":      BOOLEAN,
+	"false":     BOOLEAN,
+	"NaN":       NUMBER,
+	"Infinity":  NUMBER,
+	"null":      NULL,
+	"undefined": IDENTIFIER,
+
+	"if":     IF,
+	"else":   ELSE,
+	"while":  WHILE,
+	"for":    FOR,
+	"return": RETURN,
+
+	"var":      VAR,
+	"let":      LET,
+	"const":    CONST,
+	"function": FUNC,
 }
 
 func NewToken(typ Type, literal string) Token {
