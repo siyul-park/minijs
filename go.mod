@@ -1,4 +1,4 @@
-module github.com/siyul-park/miniscript
+module github.com/siyul-park/minijs
 
 go 1.23.6
 

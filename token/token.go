@@ -11,25 +11,32 @@ const (
 	EOF     Type = "EOF"
 	ILLEGAL Type = "ILLEGAL"
 
-	INT    Type = "INT"
-	FLOAT  Type = "FLOAT"
-	STRING Type = "STRING"
-	FALSE  Type = "FALSE"
-	TRUE   Type = "TRUE"
-	IDENT  Type = "IDENT"
+	DECIMAL     Type = "DECIMAL"
+	EXPONENTIAL Type = "EXPONENTIAL"
+	BINARY      Type = "BINARY"
+	STRING      Type = "STRING"
+	FALSE       Type = "FALSE"
+	TRUE        Type = "TRUE"
+	IDENTIFIER  Type = "IDENTIFIER"
 
 	PLUS     Type = "+"
 	MINUS    Type = "-"
 	MULTIPLY Type = "*"
 	DIVIDE   Type = "/"
+	MODULO   Type = "%"
 	PERIOD   Type = "."
 	LPAREN   Type = "("
 	RPAREN   Type = ")"
+
+	NAN      Type = "NAN"
+	INFINITY Type = "INFINITY"
 )
 
 var types = map[string]Type{
-	"true":  TRUE,
-	"false": FALSE,
+	"true":     TRUE,
+	"false":    FALSE,
+	"NaN":      NAN,
+	"Infinity": INFINITY,
 }
 
 func NewToken(typ Type, literal string) Token {
@@ -39,7 +46,7 @@ func NewToken(typ Type, literal string) Token {
 func TypeOf(literal string) Type {
 	typ, ok := types[literal]
 	if !ok {
-		typ = IDENT
+		typ = IDENTIFIER
 	}
 	return typ
 }

@@ -1,61 +1,37 @@
 package types
 
+import "fmt"
+
 type Kind string
 
 type Value interface {
 	Kind() Kind
 	Interface() any
+	String() string
 }
 
-type Null struct {
-}
+const (
+	KindUnknown Kind = "<unknown>"
+	KindVoid    Kind = "void"
+	KindFloat64 Kind = "float64"
+)
 
-type Int struct {
-	Value int
-}
-
-type Float struct {
+type Float64 struct {
 	Value float64
 }
 
-var (
-	NULL = &Null{}
-)
-
-const (
-	KindNull  Kind = "null"
-	KindInt   Kind = "int"
-	KindFloat Kind = "float"
-)
-
-func NewInt(value int) *Int {
-	return &Int{Value: value}
+func NewFloat64(value float64) Float64 {
+	return Float64{Value: value}
 }
 
-func NewFloat(value float64) *Float {
-	return &Float{Value: value}
+func (f Float64) Kind() Kind {
+	return KindFloat64
 }
 
-func (n *Null) Kind() Kind {
-	return KindNull
+func (v Float64) Interface() any {
+	return v.Value
 }
 
-func (n *Null) Interface() interface{} {
-	return nil
-}
-
-func (i *Int) Kind() Kind {
-	return KindInt
-}
-
-func (i *Int) Interface() any {
-	return i.Value
-}
-
-func (f *Float) Kind() Kind {
-	return KindFloat
-}
-
-func (f *Float) Interface() any {
-	return f.Value
+func (v Float64) String() string {
+	return fmt.Sprintf("%f", v.Value)
 }

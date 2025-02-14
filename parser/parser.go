@@ -2,9 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"github.com/siyul-park/miniscript/ast"
-	"github.com/siyul-park/miniscript/lexer"
-	"github.com/siyul-park/miniscript/token"
+	"github.com/siyul-park/minijs/ast"
+	"github.com/siyul-park/minijs/lexer"
+	"github.com/siyul-park/minijs/token"
 	"strconv"
 )
 
@@ -26,6 +26,7 @@ const (
 	LOWEST
 	SUM
 	PRODUCT
+	MODULO
 	PREFIX
 	CALL
 	HIGHEST
@@ -37,6 +38,7 @@ var precedences = map[token.Type]int{
 	token.MINUS:    SUM,
 	token.MULTIPLY: PRODUCT,
 	token.DIVIDE:   PRODUCT,
+	token.MODULO:   MODULO,
 	token.LPAREN:   CALL,
 	token.PERIOD:   CALL,
 }
@@ -49,21 +51,25 @@ func New(lexer *lexer.Lexer) *Parser {
 	}}
 
 	p.prefix = map[token.Type]func() (ast.Node, error){
-		token.INT:    p.intLiteral,
-		token.FLOAT:  p.floatLiteral,
-		token.STRING: p.stringLiteral,
-		token.TRUE:   p.boolLiteral,
-		token.FALSE:  p.boolLiteral,
-		token.IDENT:  p.identifierLiteral,
-		token.PLUS:   p.prefixExpression,
-		token.MINUS:  p.prefixExpression,
-		token.LPAREN: p.groupedExpression,
+		token.DECIMAL:     p.numberLiteral,
+		token.EXPONENTIAL: p.numberLiteral,
+		token.BINARY:      p.numberLiteral,
+		token.NAN:         p.numberLiteral,
+		token.INFINITY:    p.numberLiteral,
+		token.STRING:      p.stringLiteral,
+		token.TRUE:        p.boolLiteral,
+		token.FALSE:       p.boolLiteral,
+		token.IDENTIFIER:  p.identifierLiteral,
+		token.PLUS:        p.prefixExpression,
+		token.MINUS:       p.prefixExpression,
+		token.LPAREN:      p.groupedExpression,
 	}
 	p.infix = map[token.Type]func(ast.Node) (ast.Node, error){
 		token.PLUS:     p.infixExpression,
 		token.MINUS:    p.infixExpression,
 		token.MULTIPLY: p.infixExpression,
 		token.DIVIDE:   p.infixExpression,
+		token.MODULO:   p.infixExpression,
 	}
 
 	return p
@@ -107,28 +113,34 @@ func (p *Parser) parse(precedence int) (ast.Node, error) {
 	return left, nil
 }
 
-func (p *Parser) intLiteral() (ast.Node, error) {
+func (p *Parser) numberLiteral() (ast.Node, error) {
 	curr := p.peek(CURR)
-	value, err := strconv.Atoi(curr.Literal)
-	if err != nil {
-		return nil, err
-	}
-	return &ast.IntLiteral{
-		Token: curr,
-		Value: value,
-	}, nil
-}
 
-func (p *Parser) floatLiteral() (ast.Node, error) {
-	curr := p.peek(CURR)
-	value, err := strconv.ParseFloat(curr.Literal, 64)
-	if err != nil {
-		return nil, err
+	switch curr.Type {
+	case token.BINARY:
+		binaryValue := curr.Literal[2:]
+		value, err := strconv.ParseInt(binaryValue, 2, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid binary literal: %s", curr.Literal)
+		}
+		return &ast.NumberLiteral{
+			Token: curr,
+			Value: float64(value),
+		}, nil
+	case token.DECIMAL, token.EXPONENTIAL:
+		value, err := strconv.ParseFloat(curr.Literal, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &ast.NumberLiteral{
+			Token: curr,
+			Value: value,
+		}, nil
+	case token.NAN, token.INFINITY:
+		return &ast.NumberLiteral{Token: curr}, nil
+	default:
+		return nil, fmt.Errorf("unexpected token type for number literal: %s", curr.Type)
 	}
-	return &ast.FloatLiteral{
-		Token: curr,
-		Value: value,
-	}, nil
 }
 
 func (p *Parser) stringLiteral() (ast.Node, error) {
@@ -193,11 +205,18 @@ func (p *Parser) groupedExpression() (ast.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := p.expect(NEXT, token.RPAREN); err != nil {
+	if err := p.assert(NEXT, token.RPAREN); err != nil {
 		return nil, err
 	}
 	p.pop()
 	return n, nil
+}
+
+func (p *Parser) assert(i int, typ token.Type) error {
+	if p.peek(i).Type != typ {
+		return fmt.Errorf("expected next token to be %s, got %s instead", typ, p.peek(i).Type)
+	}
+	return nil
 }
 
 func (p *Parser) precedence(i int) int {
@@ -209,22 +228,15 @@ func (p *Parser) precedence(i int) int {
 	return precedence
 }
 
-func (p *Parser) pop() {
-	p.tokens[0] = p.tokens[1]
-	p.tokens[1] = p.tokens[2]
-	p.tokens[2] = p.lexer.Next()
-}
-
-func (p *Parser) expect(i int, typ token.Type) error {
-	if p.peek(i).Type != typ {
-		return fmt.Errorf("expected next token to be %s, got %s instead", typ, p.peek(i).Type)
-	}
-	return nil
-}
-
 func (p *Parser) peek(i int) token.Token {
 	if i >= len(p.tokens) {
 		return token.NewToken(token.EOF, "")
 	}
 	return p.tokens[i]
+}
+
+func (p *Parser) pop() {
+	p.tokens[PREV] = p.tokens[CURR]
+	p.tokens[CURR] = p.tokens[NEXT]
+	p.tokens[NEXT] = p.lexer.Next()
 }

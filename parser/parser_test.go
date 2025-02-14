@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/siyul-park/miniscript/ast"
-	"github.com/siyul-park/miniscript/lexer"
-	"github.com/siyul-park/miniscript/token"
+	"github.com/siyul-park/minijs/ast"
+	"github.com/siyul-park/minijs/lexer"
+	"github.com/siyul-park/minijs/token"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -20,13 +20,97 @@ func TestParser_Parse(t *testing.T) {
 		{
 			source: `1234567890`,
 			program: &ast.Program{Nodes: []ast.Node{
-				&ast.IntLiteral{Token: token.NewToken(token.INT, `1234567890`), Value: 1234567890},
+				&ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1234567890`), Value: 1234567890},
 			}},
 		},
 		{
 			source: `1.234567890`,
 			program: &ast.Program{Nodes: []ast.Node{
-				&ast.FloatLiteral{Token: token.NewToken(token.FLOAT, `1.234567890`), Value: 1.234567890},
+				&ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1.234567890`), Value: 1.234567890},
+			}},
+		},
+		{
+			source: `0e-5`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `0e-5`), Value: 0},
+			}},
+		},
+		{
+			source: `0e+5`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `0e+5`), Value: 0},
+			}},
+		},
+		{
+			source: `5e1`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `5e1`), Value: 50},
+			}},
+		},
+		{
+			source: `175e-2`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `175e-2`), Value: 1.75},
+			}},
+		},
+		{
+			source: `1e3`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `1e3`), Value: 1000},
+			}},
+		},
+		{
+			source: `1e-3`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `1e-3`), Value: 0.001},
+			}},
+		},
+		{
+			source: `1E3`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.EXPONENTIAL, `1e3`), Value: 1000},
+			}},
+		},
+		{
+			source: `1_000_000`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1000000`), Value: 1000000},
+			}},
+		},
+		{
+			source: `1_050.95`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1050.95`), Value: 1050.95},
+			}},
+		},
+		{
+			source: `0b10000000000000000000000000000000`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.BINARY, `0b10000000000000000000000000000000`), Value: 2147483648},
+			}},
+		},
+		{
+			source: `0B00000000011111111111111111111111`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.BINARY, `0b00000000011111111111111111111111`), Value: 8388607},
+			}},
+		},
+		{
+			source: `0b1010_0001_1000_0101`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.BINARY, `0b1010000110000101`), Value: 41349},
+			}},
+		},
+		{
+			source: `NaN`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.NAN, `NaN`)},
+			}},
+		},
+		{
+			source: `Infinity`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.NumberLiteral{Token: token.NewToken(token.INFINITY, `Infinity`)},
 			}},
 		},
 		{
@@ -50,7 +134,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			source: `foo`,
 			program: &ast.Program{Nodes: []ast.Node{
-				&ast.IdentifierLiteral{Token: token.NewToken(token.IDENT, `foo`), Value: `foo`},
+				&ast.IdentifierLiteral{Token: token.NewToken(token.IDENTIFIER, `foo`), Value: `foo`},
 			}},
 		},
 		{
@@ -58,7 +142,7 @@ func TestParser_Parse(t *testing.T) {
 			program: &ast.Program{Nodes: []ast.Node{
 				&ast.PrefixExpression{
 					Token: token.NewToken(token.PLUS, "+"),
-					Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `1234567890`), Value: 1234567890},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1234567890`), Value: 1234567890},
 				},
 			}},
 		},
@@ -67,7 +151,7 @@ func TestParser_Parse(t *testing.T) {
 			program: &ast.Program{Nodes: []ast.Node{
 				&ast.PrefixExpression{
 					Token: token.NewToken(token.MINUS, "-"),
-					Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `1234567890`), Value: 1234567890},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `1234567890`), Value: 1234567890},
 				},
 			}},
 		},
@@ -76,8 +160,8 @@ func TestParser_Parse(t *testing.T) {
 			program: &ast.Program{Nodes: []ast.Node{
 				&ast.InfixExpression{
 					Token: token.NewToken(token.PLUS, "+"),
-					Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `12345`), Value: 12345},
-					Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `67890`), Value: 67890},
+					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
 				},
 			}},
 		},
@@ -86,8 +170,8 @@ func TestParser_Parse(t *testing.T) {
 			program: &ast.Program{Nodes: []ast.Node{
 				&ast.InfixExpression{
 					Token: token.NewToken(token.MINUS, "-"),
-					Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `12345`), Value: 12345},
-					Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `67890`), Value: 67890},
+					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
 				},
 			}},
 		},
@@ -96,8 +180,8 @@ func TestParser_Parse(t *testing.T) {
 			program: &ast.Program{Nodes: []ast.Node{
 				&ast.InfixExpression{
 					Token: token.NewToken(token.MULTIPLY, "*"),
-					Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `12345`), Value: 12345},
-					Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `67890`), Value: 67890},
+					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
 				},
 			}},
 		},
@@ -106,8 +190,18 @@ func TestParser_Parse(t *testing.T) {
 			program: &ast.Program{Nodes: []ast.Node{
 				&ast.InfixExpression{
 					Token: token.NewToken(token.DIVIDE, "/"),
-					Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `12345`), Value: 12345},
-					Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `67890`), Value: 67890},
+					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
+				},
+			}},
+		},
+		{
+			source: `12345%67890`,
+			program: &ast.Program{Nodes: []ast.Node{
+				&ast.InfixExpression{
+					Token: token.NewToken(token.MODULO, "%"),
+					Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
+					Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
 				},
 			}},
 		},
@@ -118,11 +212,11 @@ func TestParser_Parse(t *testing.T) {
 					Token: token.NewToken(token.PLUS, "+"),
 					Left: &ast.PrefixExpression{
 						Token: token.NewToken(token.PLUS, "+"),
-						Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `12345`), Value: 12345},
+						Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12345`), Value: 12345},
 					},
 					Right: &ast.PrefixExpression{
 						Token: token.NewToken(token.MINUS, "-"),
-						Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `67890`), Value: 67890},
+						Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `67890`), Value: 67890},
 					},
 				},
 			}},
@@ -134,13 +228,13 @@ func TestParser_Parse(t *testing.T) {
 					Token: token.NewToken(token.PLUS, "+"),
 					Left: &ast.InfixExpression{
 						Token: token.NewToken(token.MULTIPLY, "*"),
-						Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `12`), Value: 12},
-						Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `34`), Value: 34},
+						Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12`), Value: 12},
+						Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `34`), Value: 34},
 					},
 					Right: &ast.InfixExpression{
 						Token: token.NewToken(token.DIVIDE, "/"),
-						Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `56`), Value: 56},
-						Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `78`), Value: 78},
+						Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `56`), Value: 56},
+						Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `78`), Value: 78},
 					},
 				},
 			}},
@@ -152,13 +246,13 @@ func TestParser_Parse(t *testing.T) {
 					Token: token.NewToken(token.MULTIPLY, "*"),
 					Left: &ast.InfixExpression{
 						Token: token.NewToken(token.PLUS, "+"),
-						Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `12`), Value: 12},
-						Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `34`), Value: 34},
+						Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `12`), Value: 12},
+						Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `34`), Value: 34},
 					},
 					Right: &ast.InfixExpression{
 						Token: token.NewToken(token.MINUS, "-"),
-						Left:  &ast.IntLiteral{Token: token.NewToken(token.INT, `56`), Value: 56},
-						Right: &ast.IntLiteral{Token: token.NewToken(token.INT, `78`), Value: 78},
+						Left:  &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `56`), Value: 56},
+						Right: &ast.NumberLiteral{Token: token.NewToken(token.DECIMAL, `78`), Value: 78},
 					},
 				},
 			}},

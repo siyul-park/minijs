@@ -2,11 +2,10 @@ package ast
 
 import (
 	"bytes"
-	"github.com/siyul-park/miniscript/token"
+	"github.com/siyul-park/minijs/token"
 )
 
 type Node interface {
-	Literal() string
 	String() string
 }
 
@@ -14,12 +13,7 @@ type Program struct {
 	Nodes []Node
 }
 
-type IntLiteral struct {
-	Token token.Token
-	Value int
-}
-
-type FloatLiteral struct {
+type NumberLiteral struct {
 	Token token.Token
 	Value float64
 }
@@ -50,13 +44,6 @@ type InfixExpression struct {
 	Right Node
 }
 
-func (p *Program) Literal() string {
-	if len(p.Nodes) > 0 {
-		return p.Nodes[0].Literal()
-	}
-	return ""
-}
-
 func (p *Program) String() string {
 	var out bytes.Buffer
 	for _, n := range p.Nodes {
@@ -65,23 +52,7 @@ func (p *Program) String() string {
 	return out.String()
 }
 
-func (n *IntLiteral) Literal() string {
-	return n.Token.Literal
-}
-
-func (n *IntLiteral) String() string {
-	return n.Token.Literal
-}
-
-func (n *FloatLiteral) Literal() string {
-	return n.Token.Literal
-}
-
-func (n *FloatLiteral) String() string {
-	return n.Token.Literal
-}
-
-func (n *StringLiteral) Literal() string {
+func (n *NumberLiteral) String() string {
 	return n.Token.Literal
 }
 
@@ -89,24 +60,12 @@ func (n *StringLiteral) String() string {
 	return n.Token.Literal
 }
 
-func (n *BoolLiteral) Literal() string {
-	return n.Token.Literal
-}
-
 func (n *BoolLiteral) String() string {
-	return n.Token.Literal
-}
-
-func (n *IdentifierLiteral) Literal() string {
 	return n.Token.Literal
 }
 
 func (n *IdentifierLiteral) String() string {
 	return n.Value
-}
-
-func (n *PrefixExpression) Literal() string {
-	return n.Token.Literal
 }
 
 func (n *PrefixExpression) String() string {
@@ -116,10 +75,6 @@ func (n *PrefixExpression) String() string {
 	out.WriteString(n.Right.String())
 	out.WriteString(")")
 	return out.String()
-}
-
-func (n *InfixExpression) Literal() string {
-	return n.Token.Literal
 }
 
 func (n *InfixExpression) String() string {
