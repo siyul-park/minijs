@@ -9,21 +9,17 @@ import (
 )
 
 type Interpreter struct {
-	stack     []types.Value
-	frames    []*Frame
-	constants []byte
-	sp        int
-	fp        int
+	stack  []types.Value
+	frames []*Frame
+	sp     int
+	fp     int
 }
 
-func New(code bytecode.Bytecode) *Interpreter {
-	i := &Interpreter{
-		stack:     make([]types.Value, 512),
-		frames:    make([]*Frame, 64),
-		constants: code.Constants,
+func New() *Interpreter {
+	return &Interpreter{
+		stack:  make([]types.Value, 512),
+		frames: make([]*Frame, 64),
 	}
-	i.call(NewFrame(code, 0))
-	return i
 }
 
 func (i *Interpreter) Peek(offset int) types.Value {
@@ -34,9 +30,11 @@ func (i *Interpreter) Peek(offset int) types.Value {
 	return i.stack[sp]
 }
 
-func (i *Interpreter) Execute() error {
-	frame := i.frame()
+func (i *Interpreter) Execute(code bytecode.Bytecode) error {
+	frame := NewFrame(code, 0)
 	insns := frame.Instructions()
+
+	i.call(frame)
 
 	for frame.ip < len(insns)-1 {
 		frame.ip++

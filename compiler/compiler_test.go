@@ -39,6 +39,46 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 		},
 		{
+			node: &ast.Program{
+				Statements: []*ast.Statement{
+					{
+						Node: &ast.InfixExpression{
+							Token: token.NewToken(token.PLUS, `+`),
+							Left: &ast.NumberLiteral{
+								Token: token.NewToken(token.NUMBER, `1`),
+								Value: 1,
+							},
+							Right: &ast.NumberLiteral{
+								Token: token.NewToken(token.NUMBER, `2`),
+								Value: 2,
+							},
+						},
+					},
+					{Node: &ast.InfixExpression{
+						Token: token.NewToken(token.PLUS, `+`),
+						Left: &ast.NumberLiteral{
+							Token: token.NewToken(token.NUMBER, `3`),
+							Value: 3,
+						},
+						Right: &ast.NumberLiteral{
+							Token: token.NewToken(token.NUMBER, `4`),
+							Value: 4,
+						},
+					}},
+				},
+			},
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64ADD),
+				bytecode.New(bytecode.POP),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(3)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(4)),
+				bytecode.New(bytecode.F64ADD),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
 			node: &ast.Statement{
 				Node: &ast.NumberLiteral{
 					Token: token.NewToken(token.NUMBER, `1234567890`),

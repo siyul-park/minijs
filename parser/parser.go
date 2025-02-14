@@ -85,17 +85,16 @@ func (p *Parser) Parse() (*ast.Program, error) {
 func (p *Parser) statement() (*ast.Statement, error) {
 	if p.peek(CURR).Type == token.SEMICOLON {
 		p.pop()
-		return &ast.Statement{}, nil
+		return ast.NewStatement(nil), nil
 	}
-
 	exp, err := p.expression(LOWEST)
 	if err != nil {
 		return nil, err
 	}
-	if p.peek(CURR).Type == token.SEMICOLON {
+	if p.peek(NEXT).Type == token.SEMICOLON {
 		p.pop()
 	}
-	return &ast.Statement{Node: exp}, nil
+	return ast.NewStatement(exp), nil
 }
 
 func (p *Parser) expression(precedence int) (ast.Node, error) {
@@ -127,7 +126,7 @@ func (p *Parser) numberLiteral() (ast.Node, error) {
 	curr := p.peek(CURR)
 
 	if curr.Literal == "NaN" || curr.Literal == "Infinity" {
-		return &ast.NumberLiteral{Token: curr}, nil
+		return ast.NewNumberLiteral(curr, 0), nil
 	}
 
 	if len(curr.Literal) > 2 && curr.Literal[:2] == "0b" {
@@ -136,59 +135,41 @@ func (p *Parser) numberLiteral() (ast.Node, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid binary literal: %s", curr.Literal)
 		}
-		return &ast.NumberLiteral{
-			Token: curr,
-			Value: float64(value),
-		}, nil
+		return ast.NewNumberLiteral(curr, float64(value)), nil
 	}
 
 	value, err := strconv.ParseFloat(curr.Literal, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid number literal: %s", curr.Literal)
 	}
-	return &ast.NumberLiteral{
-		Token: curr,
-		Value: value,
-	}, nil
+	return ast.NewNumberLiteral(curr, value), nil
 }
 
 func (p *Parser) stringLiteral() (ast.Node, error) {
 	curr := p.peek(CURR)
-	return &ast.StringLiteral{
-		Token: curr,
-		Value: curr.Literal,
-	}, nil
+	return ast.NewStringLiteral(curr, curr.Literal), nil
 }
 
 func (p *Parser) boolLiteral() (ast.Node, error) {
 	curr := p.peek(CURR)
-	return &ast.BoolLiteral{
-		Token: curr,
-		Value: curr.Literal == "true",
-	}, nil
+	return ast.NewBoolLiteral(curr, curr.Literal == "true"), nil
 }
 
 func (p *Parser) identifierLiteral() (ast.Node, error) {
 	curr := p.peek(CURR)
-	return &ast.IdentifierLiteral{
-		Token: curr,
-		Value: curr.Literal,
-	}, nil
+	return ast.NewIdentifierLiteral(curr, curr.Literal), nil
 }
 
 func (p *Parser) prefixExpression() (ast.Node, error) {
 	curr := p.peek(CURR)
 
 	p.pop()
+
 	right, err := p.expression(PREFIX)
 	if err != nil {
 		return nil, err
 	}
-
-	return &ast.PrefixExpression{
-		Token: curr,
-		Right: right,
-	}, nil
+	return ast.NewPrefixExpression(curr, right), nil
 }
 
 func (p *Parser) infixExpression(left ast.Node) (ast.Node, error) {
@@ -196,27 +177,26 @@ func (p *Parser) infixExpression(left ast.Node) (ast.Node, error) {
 	precedence := p.precedence(CURR)
 
 	p.pop()
+
 	right, err := p.expression(precedence)
 	if err != nil {
 		return nil, err
 	}
-
-	return &ast.InfixExpression{
-		Token: curr,
-		Left:  left,
-		Right: right,
-	}, nil
+	return ast.NewInfixExpression(curr, left, right), nil
 }
 
 func (p *Parser) groupedExpression() (ast.Node, error) {
 	p.pop()
+
 	n, err := p.expression(LOWEST)
 	if err != nil {
 		return nil, err
 	}
+
 	if err := p.assert(NEXT, token.RPAREN); err != nil {
 		return nil, err
 	}
+
 	p.pop()
 	return n, nil
 }

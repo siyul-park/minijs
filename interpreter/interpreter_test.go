@@ -58,9 +58,9 @@ func TestInterpreter_Execute(t *testing.T) {
 		code.Append(tt.instructions...)
 
 		t.Run(code.String(), func(t *testing.T) {
-			interpreter := New(code)
+			interpreter := New()
 
-			err := interpreter.Execute()
+			err := interpreter.Execute(code)
 			assert.NoError(t, err)
 
 			for i, val := range tt.stack {

@@ -53,7 +53,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		c := compiler.New(stmts[0].Node)
+		c := compiler.New(stmts[len(stmts)-1].Node)
 		code, err := c.Compile()
 		if err != nil {
 			if _, err := fmt.Fprintln(writer, err); err != nil {
@@ -62,8 +62,8 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		i := interpreter.New(code)
-		if err := i.Execute(); err != nil {
+		i := interpreter.New()
+		if err := i.Execute(code); err != nil {
 			if _, err := fmt.Fprintln(writer, err); err != nil {
 				return err
 			}
