@@ -19,14 +19,22 @@ func TestCompiler_Compile(t *testing.T) {
 				Statements: []*ast.Statement{
 					{
 						Node: &ast.NumberLiteral{
-							Token: token.NewToken(token.NUMBER, `1234567890`),
-							Value: 1234567890,
+							Token: token.NewToken(token.NUMBER, `12345`),
+							Value: 12345,
+						},
+					},
+					{
+						Node: &ast.NumberLiteral{
+							Token: token.NewToken(token.NUMBER, `67890`),
+							Value: 67890,
 						},
 					},
 				},
 			},
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LOAD, math.Float64bits(1234567890)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(12345)),
+				bytecode.New(bytecode.POP),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(67890)),
 				bytecode.New(bytecode.POP),
 			},
 		},

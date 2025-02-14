@@ -1,6 +1,8 @@
 package interpreter
 
 import (
+	"encoding/binary"
+	"fmt"
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/siyul-park/minijs/types"
 	"math"
@@ -34,20 +36,22 @@ func (i *Interpreter) Peek(offset int) types.Value {
 
 func (i *Interpreter) Execute() error {
 	frame := i.frame()
+	insns := frame.Instructions()
 
-	for {
-		instruction := frame.Next()
-		if instruction == nil {
-			break
-		}
+	for frame.ip < len(insns)-1 {
+		frame.ip++
 
-		switch instruction.Opcode() {
+		ip := frame.ip
+		opcode := bytecode.Opcode(insns[ip])
+
+		switch opcode {
 		case bytecode.NOP:
 		case bytecode.POP:
 			i.pop()
 		case bytecode.F64LOAD:
-			operands := instruction.Operands()
-			i.push(types.NewFloat64(math.Float64frombits(operands[0])))
+			val := binary.BigEndian.Uint64(insns[frame.ip+1 : frame.ip+9])
+			i.push(types.NewFloat64(math.Float64frombits(val)))
+			frame.ip += 8
 		case bytecode.F64ADD:
 			val2, _ := i.pop().(types.Float64)
 			val1, _ := i.pop().(types.Float64)
@@ -68,9 +72,12 @@ func (i *Interpreter) Execute() error {
 			val2, _ := i.pop().(types.Float64)
 			val1, _ := i.pop().(types.Float64)
 			i.push(types.NewFloat64(math.Mod(val1.Value, val2.Value)))
+		default:
+			return fmt.Errorf("unknown opcode: %v", opcode)
 		}
 
 		frame = i.frame()
+		insns = frame.Instructions()
 	}
 
 	return nil
