@@ -11,7 +11,6 @@ import (
 )
 
 type Compiler struct {
-	node      ast.Node
 	code      bytecode.Bytecode
 	constants map[string]int
 }
@@ -23,21 +22,22 @@ var castOpcode = map[types.Kind]map[types.Kind]bytecode.Opcode{
 	},
 	types.KindFloat64: {
 		types.KindFloat64: bytecode.NOP,
+		types.KindString:  bytecode.F642C,
 	},
 }
 
-func New(node ast.Node) *Compiler {
+func New() *Compiler {
 	return &Compiler{
-		node:      node,
 		constants: make(map[string]int),
 	}
 }
 
-func (c *Compiler) Compile() (bytecode.Bytecode, error) {
-	if _, err := c.compile(c.node); err != nil {
-		return bytecode.Bytecode{}, err
-	}
-	return c.code, nil
+func (c *Compiler) Compile(node ast.Node) (bytecode.Bytecode, error) {
+	_, err := c.compile(node)
+	code := c.code
+	c.code = bytecode.Bytecode{}
+	c.constants = make(map[string]int)
+	return code, err
 }
 
 func (c *Compiler) compile(node ast.Node) (types.Kind, error) {
@@ -102,12 +102,8 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (types.Kind, err
 
 	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
-		opcode, ok := castOpcode[right][types.KindFloat64]
-		if !ok {
-			return types.KindUnknown, fmt.Errorf("unsupported cast from %s to %s", right, types.KindFloat64)
-		}
-		if opcode != bytecode.NOP {
-			c.emit(opcode)
+		if _, err := c.cast(right, types.KindFloat64); err != nil {
+			return types.KindUnknown, err
 		}
 		if node.Token.Type == token.MINUS {
 			c.emit(bytecode.F64LD, math.Float64bits(-1))
@@ -120,13 +116,33 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (types.Kind, err
 }
 
 func (c *Compiler) infixExpression(node *ast.InfixExpression) (types.Kind, error) {
+	left := c.kind(node.Left)
+	right := c.kind(node.Right)
+
+	if left == types.KindString || right == types.KindString {
+		left, right = types.KindString, types.KindString
+	}
+
 	left, err := c.compile(node.Left)
 	if err != nil {
 		return types.KindUnknown, err
 	}
-	right, err := c.compile(node.Right)
+	if left != right {
+		left, err = c.cast(left, right)
+		if err != nil {
+			return types.KindUnknown, err
+		}
+	}
+
+	right, err = c.compile(node.Right)
 	if err != nil {
 		return types.KindUnknown, err
+	}
+	if right != left {
+		right, err = c.cast(right, left)
+		if err != nil {
+			return types.KindUnknown, err
+		}
 	}
 
 	if left == types.KindFloat64 && right == types.KindFloat64 {
@@ -160,6 +176,23 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (types.Kind, error
 		}
 	}
 	return types.KindUnknown, fmt.Errorf("unsupported operator for types %s and %s: %s", left, right, node.Token.Type)
+}
+
+func (c *Compiler) cast(from, to types.Kind) (types.Kind, error) {
+	opcode, ok := castOpcode[from][to]
+	if !ok {
+		return types.KindUnknown, fmt.Errorf("unsupported cast from %s to %s", from, to)
+	}
+	if opcode != bytecode.NOP {
+		c.emit(opcode)
+	}
+	return to, nil
+}
+
+func (c *Compiler) kind(node ast.Node) types.Kind {
+	p := New()
+	kind, _ := p.compile(node)
+	return kind
 }
 
 func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) int {

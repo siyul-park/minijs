@@ -127,6 +127,20 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 			constants: [][]byte{[]byte("foo"), []byte("bar")},
 		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "1"}, "1"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLD, 0, 1),
+				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
+				bytecode.New(bytecode.F642C),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: [][]byte{[]byte("1")},
+		},
 	}
 
 	for _, tt := range tests {
@@ -137,9 +151,9 @@ func TestCompiler_Compile(t *testing.T) {
 		}
 
 		t.Run(tt.node.String(), func(t *testing.T) {
-			compiler := New(tt.node)
+			compiler := New()
 
-			result, err := compiler.Compile()
+			result, err := compiler.Compile(tt.node)
 			assert.NoError(t, err)
 			assert.Equal(t, code.String(), result.String())
 		})

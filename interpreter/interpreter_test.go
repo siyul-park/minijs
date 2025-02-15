@@ -53,6 +53,13 @@ func TestInterpreter_Execute(t *testing.T) {
 			},
 			stack: []types.Value{types.NewFloat64(0.5)},
 		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
+				bytecode.New(bytecode.F642C),
+			},
+			stack: []types.Value{types.NewString("1")},
+		},
 
 		{
 			instructions: []bytecode.Instruction{

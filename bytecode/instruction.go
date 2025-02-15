@@ -24,6 +24,7 @@ const (
 	F64MUL
 	F64DIV
 	F64MOD
+	F642C
 
 	CLD
 	CADD
@@ -40,6 +41,7 @@ var types = map[Opcode]*Type{
 	F64MUL: {Mnemonic: "f64mul"},
 	F64DIV: {Mnemonic: "f64div"},
 	F64MOD: {Mnemonic: "f64mod"},
+	F642C:  {Mnemonic: "f642c"},
 
 	CLD:   {Mnemonic: "cld", Widths: []int{4, 4}},
 	CADD:  {Mnemonic: "cadd"},

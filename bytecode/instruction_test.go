@@ -20,6 +20,7 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(F64MUL), expect: "f64mul"},
 		{instruction: New(F64DIV), expect: "f64div"},
 		{instruction: New(F64MOD), expect: "f64mod"},
+		{instruction: New(F642C), expect: "f642c"},
 
 		{instruction: New(CLD, 0x01, 0x01), expect: "cld 0x1 0x1"},
 		{instruction: New(CADD), expect: "cadd"},

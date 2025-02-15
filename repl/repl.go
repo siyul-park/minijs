@@ -54,8 +54,8 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		c := compiler.New(stmts[len(stmts)-1].Node)
-		code, err := c.Compile()
+		c := compiler.New()
+		code, err := c.Compile(stmts[len(stmts)-1].Node)
 		if err != nil {
 			if _, err := fmt.Fprintln(writer, err); err != nil {
 				return err
