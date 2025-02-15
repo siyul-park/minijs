@@ -18,7 +18,7 @@ type Interpreter struct {
 
 func New() *Interpreter {
 	return &Interpreter{
-		stack:  make([]types.Value, 512),
+		stack:  make([]types.Value, 64),
 		frames: make([]*Frame, 64),
 	}
 }
@@ -103,10 +103,11 @@ func (i *Interpreter) call(f *Frame) {
 
 func (i *Interpreter) push(val types.Value) {
 	if i.sp >= len(i.stack) {
-		i.stack = append(i.stack, val)
-	} else {
-		i.stack[i.sp] = val
+		stack := make([]types.Value, len(i.stack)*2)
+		copy(stack, i.stack)
+		i.stack = stack
 	}
+	i.stack[i.sp] = val
 	i.sp++
 }
 
