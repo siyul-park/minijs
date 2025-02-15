@@ -18,16 +18,27 @@ const (
 	NOP Opcode = iota
 	POP
 
+	I32LOAD
+	I32MUL
+	I32ADD
+	I32SUB
+	I32DIV
+	I32MOD
+	I322F64
+	I322C
+
 	F64LOAD
 	F64ADD
 	F64SUB
 	F64MUL
 	F64DIV
 	F64MOD
+	F64I32
 	F642C
 
 	CLOAD
 	CADD
+	C2I32
 	C2F64
 )
 
@@ -35,16 +46,27 @@ var types = map[Opcode]*Type{
 	NOP: {Mnemonic: "nop"},
 	POP: {Mnemonic: "pop"},
 
+	I32LOAD: {Mnemonic: "i32load", Widths: []int{4}},
+	I32MUL:  {Mnemonic: "i32mul"},
+	I32ADD:  {Mnemonic: "i32add"},
+	I32SUB:  {Mnemonic: "i32sub"},
+	I32DIV:  {Mnemonic: "i32div"},
+	I32MOD:  {Mnemonic: "i32mod"},
+	I322F64: {Mnemonic: "i322f64"},
+	I322C:   {Mnemonic: "i322c"},
+
 	F64LOAD: {Mnemonic: "f64load", Widths: []int{8}},
 	F64ADD:  {Mnemonic: "f64add"},
 	F64SUB:  {Mnemonic: "f64sub"},
 	F64MUL:  {Mnemonic: "f64mul"},
 	F64DIV:  {Mnemonic: "f64div"},
 	F64MOD:  {Mnemonic: "f64mod"},
+	F64I32:  {Mnemonic: "f64i32"},
 	F642C:   {Mnemonic: "f642c"},
 
 	CLOAD: {Mnemonic: "cload", Widths: []int{4, 4}},
 	CADD:  {Mnemonic: "cadd"},
+	C2I32: {Mnemonic: "c2i32"},
 	C2F64: {Mnemonic: "c2f64"},
 }
 

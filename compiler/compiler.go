@@ -2,11 +2,11 @@ package compiler
 
 import (
 	"fmt"
-	"github.com/siyul-park/minijs/interpreter"
 	"math"
 
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/bytecode"
+	"github.com/siyul-park/minijs/interpreter"
 	"github.com/siyul-park/minijs/token"
 )
 
@@ -15,14 +15,21 @@ type Compiler struct {
 	constants map[string]int
 }
 
-var castOpcode = map[interpreter.Kind]map[interpreter.Kind]bytecode.Opcode{
-	interpreter.STRING: {
-		interpreter.STRING:  bytecode.NOP,
-		interpreter.FLOAT64: bytecode.C2F64,
+var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
+	interpreter.INT32: {
+		interpreter.INT32:   []bytecode.Instruction{},
+		interpreter.FLOAT64: []bytecode.Instruction{bytecode.New(bytecode.I322F64)},
+		interpreter.STRING:  []bytecode.Instruction{bytecode.New(bytecode.I322F64), bytecode.New(bytecode.F642C)},
 	},
 	interpreter.FLOAT64: {
-		interpreter.FLOAT64: bytecode.NOP,
-		interpreter.STRING:  bytecode.F642C,
+		interpreter.INT32:   []bytecode.Instruction{bytecode.New(bytecode.F64I32)},
+		interpreter.FLOAT64: []bytecode.Instruction{},
+		interpreter.STRING:  []bytecode.Instruction{bytecode.New(bytecode.F642C)},
+	},
+	interpreter.STRING: {
+		interpreter.INT32:   []bytecode.Instruction{bytecode.New(bytecode.C2I32)},
+		interpreter.FLOAT64: []bytecode.Instruction{bytecode.New(bytecode.C2F64)},
+		interpreter.STRING:  []bytecode.Instruction{},
 	},
 }
 
@@ -83,6 +90,10 @@ func (c *Compiler) number(node *ast.NumberLiteral) (interpreter.Kind, error) {
 	case "Infinity":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.Inf(1)))
 	default:
+		if node.IsInteger() {
+			c.emit(bytecode.I32LOAD, uint64(int32(node.Value)))
+			return interpreter.INT32, nil
+		}
 		c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
 	}
 	return interpreter.FLOAT64, nil
@@ -102,14 +113,26 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (interpreter.Kin
 
 	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
-		if _, err := c.cast(right, interpreter.FLOAT64); err != nil {
-			return interpreter.UNKNOWN, err
+		if right != interpreter.INT32 && right != interpreter.FLOAT64 {
+			if right, err = c.cast(right, interpreter.FLOAT64); err != nil {
+				return interpreter.UNKNOWN, err
+			}
 		}
 		if node.Token.Type == token.MINUS {
-			c.emit(bytecode.F64LOAD, math.Float64bits(-1))
-			c.emit(bytecode.F64MUL)
+			switch right {
+			case interpreter.INT32:
+				if node.Token.Type == token.MINUS {
+					c.emit(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF))
+					c.emit(bytecode.I32MUL)
+				}
+			case interpreter.FLOAT64:
+				if node.Token.Type == token.MINUS {
+					c.emit(bytecode.F64LOAD, math.Float64bits(-1))
+					c.emit(bytecode.F64MUL)
+				}
+			}
 		}
-		return interpreter.FLOAT64, nil
+		return right, nil
 	default:
 		return interpreter.UNKNOWN, fmt.Errorf("invalid token for prefix expression: %s", node.Token.Type)
 	}
@@ -123,13 +146,17 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 		left, right = interpreter.STRING, interpreter.STRING
 	}
 
+	if left == interpreter.FLOAT64 || right == interpreter.FLOAT64 || node.Token.Type == token.SLASH || node.Token.Type == token.PERCENT {
+		left, right = interpreter.FLOAT64, interpreter.FLOAT64
+	}
+
 	left, err := c.compile(node.Left)
 	if err != nil {
 		return interpreter.UNKNOWN, err
 	}
+
 	if left != right {
-		left, err = c.cast(left, right)
-		if err != nil {
+		if left, err = c.cast(left, right); err != nil {
 			return interpreter.UNKNOWN, err
 		}
 	}
@@ -138,10 +165,26 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 	if err != nil {
 		return interpreter.UNKNOWN, err
 	}
+
 	if right != left {
-		right, err = c.cast(right, left)
-		if err != nil {
+		if right, err = c.cast(right, left); err != nil {
 			return interpreter.UNKNOWN, err
+		}
+	}
+
+	if left == interpreter.INT32 && right == interpreter.INT32 {
+		switch node.Token.Type {
+		case token.PLUS:
+			c.emit(bytecode.I32ADD)
+			return interpreter.INT32, nil
+		case token.MINUS:
+			c.emit(bytecode.I32SUB)
+			return interpreter.INT32, nil
+		case token.ASTERISK:
+			c.emit(bytecode.I32MUL)
+			return interpreter.INT32, nil
+		default:
+			return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for int32: %s", node.Token.Type)
 		}
 	}
 
@@ -166,6 +209,7 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 			return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for float64: %s", node.Token.Type)
 		}
 	}
+
 	if left == interpreter.STRING && right == interpreter.STRING {
 		switch node.Token.Type {
 		case token.PLUS:
@@ -175,18 +219,40 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 			return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for string: %s", node.Token.Type)
 		}
 	}
+
 	return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for types %s and %s: %s", left, right, node.Token.Type)
 }
 
 func (c *Compiler) cast(from, to interpreter.Kind) (interpreter.Kind, error) {
-	opcode, ok := castOpcode[from][to]
-	if !ok {
-		return interpreter.UNKNOWN, fmt.Errorf("unsupported cast from %s to %s", from, to)
+	queue := []interpreter.Kind{from}
+	visited := map[interpreter.Kind]bool{}
+
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		if insns, ok := casts[curr][to]; ok {
+			for _, insn := range insns {
+				c.code.Add(insn)
+			}
+			return to, nil
+		}
+
+		if visited[curr] {
+			continue
+		}
+		visited[curr] = true
+
+		for next, insns := range casts[curr] {
+			if !visited[next] {
+				for _, insn := range insns {
+					c.code.Add(insn)
+				}
+				queue = append(queue, next)
+			}
+		}
 	}
-	if opcode != bytecode.NOP {
-		c.emit(opcode)
-	}
-	return to, nil
+	return interpreter.UNKNOWN, fmt.Errorf("no cast path found from %s to %s", from, to)
 }
 
 func (c *Compiler) kind(node ast.Node) interpreter.Kind {

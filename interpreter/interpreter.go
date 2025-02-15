@@ -45,6 +45,46 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.NOP:
 		case bytecode.POP:
 			i.pop()
+		case bytecode.I32LOAD:
+			val := int32(binary.BigEndian.Uint32(insns[frame.ip+1:]))
+			i.push32(INT32, uint32(val))
+			frame.ip += 4
+		case bytecode.I32MUL:
+			_, val2 := i.pop32()
+			_, val1 := i.pop32()
+			i1 := int32(val1)
+			i2 := int32(val2)
+			i.push32(INT32, uint32(i1*i2))
+		case bytecode.I32ADD:
+			_, val2 := i.pop32()
+			_, val1 := i.pop32()
+			i1 := int32(val1)
+			i2 := int32(val2)
+			i.push32(INT32, uint32(i1+i2))
+		case bytecode.I32SUB:
+			_, val2 := i.pop32()
+			_, val1 := i.pop32()
+			i1 := int32(val1)
+			i2 := int32(val2)
+			i.push32(INT32, uint32(i1-i2))
+		case bytecode.I32DIV:
+			_, val2 := i.pop32()
+			_, val1 := i.pop32()
+			i1 := int32(val1)
+			i2 := int32(val2)
+			i.push32(INT32, uint32(i1/i2))
+		case bytecode.I32MOD:
+			_, val2 := i.pop32()
+			_, val1 := i.pop32()
+			i1 := int32(val1)
+			i2 := int32(val2)
+			i.push32(INT32, uint32(i1%i2))
+		case bytecode.I322F64:
+			_, val := i.pop32()
+			i.push64(FLOAT64, math.Float64bits(float64(val)))
+		case bytecode.I322C:
+			_, val := i.pop32()
+			i.push(STRING, []byte(strconv.Itoa(int(val))))
 		case bytecode.F64LOAD:
 			val := binary.BigEndian.Uint64(insns[frame.ip+1:])
 			i.push64(FLOAT64, val)
@@ -79,6 +119,10 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			f1 := math.Float64frombits(val1)
 			f2 := math.Float64frombits(val2)
 			i.push64(FLOAT64, math.Float64bits(math.Mod(f1, f2)))
+		case bytecode.F64I32:
+			_, val := i.pop64()
+			f := math.Float64frombits(val)
+			i.push32(INT32, uint32(int32(f)))
 		case bytecode.F642C:
 			_, val := i.pop64()
 			f := math.Float64frombits(val)
@@ -99,6 +143,13 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 				f = math.NaN()
 			}
 			i.push64(FLOAT64, math.Float64bits(f))
+		case bytecode.C2I32:
+			_, val := i.pop()
+			n, err := strconv.Atoi(string(val))
+			if err != nil {
+				n = 0
+			}
+			i.push32(INT32, uint32(n))
 		default:
 			typ := bytecode.TypeOf(opcode)
 			if typ == nil {
@@ -111,7 +162,6 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		insns = frame.Instructions()
 		consts = frame.Constants()
 	}
-
 	return nil
 }
 
@@ -139,6 +189,9 @@ func (i *Interpreter) exit() {
 
 func (i *Interpreter) decode(kind Kind, val []byte) any {
 	switch kind {
+	case INT32:
+		v := binary.BigEndian.Uint32(val)
+		return int32(v)
 	case FLOAT64:
 		v := binary.BigEndian.Uint64(val)
 		return math.Float64frombits(v)
@@ -199,6 +252,24 @@ func (i *Interpreter) top() (Kind, []byte) {
 	return Kind(mark & KIND), val
 }
 
+func (i *Interpreter) push32(kind Kind, val uint32) {
+	i.resize(i.sp + 4 + 1)
+	binary.BigEndian.PutUint32(i.stack[i.sp:], val)
+	i.stack[i.sp+4] = byte(PRIMITIVE | KIND&kind | SIZE&4)
+	i.sp += 5
+}
+
+func (i *Interpreter) pop32() (Kind, uint32) {
+	if i.sp == 0 {
+		return 0, 0
+	}
+	mark := i.stack[i.sp-1]
+	i.sp -= 1
+	val := binary.BigEndian.Uint32(i.stack[i.sp-4 : i.sp])
+	i.sp -= 4
+	return Kind(mark & KIND), val
+}
+
 func (i *Interpreter) push64(kind Kind, val uint64) {
 	i.resize(i.sp + 8 + 1)
 	binary.BigEndian.PutUint64(i.stack[i.sp:], val)
@@ -210,10 +281,8 @@ func (i *Interpreter) pop64() (Kind, uint64) {
 	if i.sp == 0 {
 		return 0, 0
 	}
-
 	mark := i.stack[i.sp-1]
 	i.sp -= 1
-
 	val := binary.BigEndian.Uint64(i.stack[i.sp-8 : i.sp])
 	i.sp -= 8
 	return Kind(mark & KIND), val

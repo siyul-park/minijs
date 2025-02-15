@@ -11,8 +11,9 @@ const (
 
 const (
 	VOID    Kind = 0
-	FLOAT64 Kind = 0b000010000
-	STRING  Kind = 0b001000000
+	INT32   Kind = 0b000010000
+	FLOAT64 Kind = 0b001000000
+	STRING  Kind = 0b001100000
 	UNKNOWN Kind = 0b011100000
 )
 

@@ -16,6 +16,58 @@ func TestInterpreter_Execute(t *testing.T) {
 	}{
 		{
 			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+			stack: []any{int32(1)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32MUL),
+			},
+			stack: []any{int32(2)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 6),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32DIV),
+			},
+			stack: []any{int32(3)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 7),
+				bytecode.New(bytecode.I32LOAD, 3),
+				bytecode.New(bytecode.I32MOD),
+			},
+			stack: []any{int32(1)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 5),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32DIV),
+			},
+			stack: []any{int32(5)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 5),
+				bytecode.New(bytecode.I322F64),
+			},
+			stack: []any{float64(5)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 42),
+				bytecode.New(bytecode.I322C),
+			},
+			stack: []any{"42"},
+		},
+		{
+			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
 			stack: []any{float64(1)},
@@ -54,6 +106,13 @@ func TestInterpreter_Execute(t *testing.T) {
 		},
 		{
 			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(3.7)),
+				bytecode.New(bytecode.F64I32),
+			},
+			stack: []any{int32(3)},
+		},
+		{
+			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 				bytecode.New(bytecode.F642C),
 			},
@@ -74,6 +133,14 @@ func TestInterpreter_Execute(t *testing.T) {
 			},
 			constants: []string{"abc"},
 			stack:     []any{"abcabc"},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.C2I32),
+			},
+			constants: []string{"123"},
+			stack:     []any{int32(123)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -112,6 +179,51 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 	}{
 		{
 			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32MUL),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 6),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32DIV),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 7),
+				bytecode.New(bytecode.I32LOAD, 3),
+				bytecode.New(bytecode.I32MOD),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 5),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32DIV),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 5),
+				bytecode.New(bytecode.I322F64),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 42),
+				bytecode.New(bytecode.I322C),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
 		},
@@ -145,6 +257,12 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		},
 		{
 			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(3.7)),
+				bytecode.New(bytecode.F64I32),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 				bytecode.New(bytecode.F642C),
 			},
@@ -162,6 +280,13 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 				bytecode.New(bytecode.CADD),
 			},
 			constants: []string{"abc"},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.C2I32),
+			},
+			constants: []string{"123"},
 		},
 		{
 			instructions: []bytecode.Instruction{

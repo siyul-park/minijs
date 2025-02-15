@@ -12,20 +12,217 @@ import (
 
 func TestCompiler_Compile(t *testing.T) {
 	tests := []struct {
-		name         string
 		node         ast.Node
 		instructions []bytecode.Instruction
 		constants    []string
 	}{
 		{
-			name: "Number Literal",
 			node: ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.NewToken(token.MINUS, "-"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF)),
+				bytecode.New(bytecode.I32MUL),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32ADD),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64ADD),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.F642C),
+				bytecode.New(bytecode.CLOAD, 0, 1),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: []string{"2"},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.MINUS, "-"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32SUB),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.ASTERISK, "*"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I32MUL),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.SLASH, "/"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.F64DIV),
+			},
+		},
+
+		{
+			node: ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
 		},
 		{
-			name: "String Literal",
+			node: ast.NewPrefixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.NewToken(token.MINUS, "-"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(-1)),
+				bytecode.New(bytecode.F64MUL),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64ADD),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F642C),
+				bytecode.New(bytecode.CLOAD, 0, 1),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: []string{"2"},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.MINUS, "-"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64SUB),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.ASTERISK, "*"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64MUL),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.SLASH, "/"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64DIV),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PERCENT, "%"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64MOD),
+			},
+		},
+
+		{
 			node: ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc"),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.CLOAD, 0, 3),
@@ -33,7 +230,6 @@ func TestCompiler_Compile(t *testing.T) {
 			constants: []string{"abc"},
 		},
 		{
-			name: "String Concatenation",
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
@@ -46,36 +242,10 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 			constants: []string{"foo", "bar"},
 		},
-		{
-			name: "Addition",
-			node: ast.NewInfixExpression(
-				token.NewToken(token.PLUS, "+"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
-				bytecode.New(bytecode.F64ADD),
-			},
-		},
-		{
-			name: "Subtraction",
-			node: ast.NewInfixExpression(
-				token.NewToken(token.MINUS, "-"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
-				bytecode.New(bytecode.F64SUB),
-			},
-		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.node.String(), func(t *testing.T) {
 			compiler := New()
 			code := bytecode.Bytecode{}
 			code.Add(tt.instructions...)
