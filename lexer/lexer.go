@@ -1,9 +1,9 @@
 package lexer
 
 import (
-	"unicode"
-
+	"fmt"
 	"github.com/siyul-park/minijs/token"
+	"unicode"
 )
 
 type Lexer struct {
@@ -16,7 +16,7 @@ func New(source string) *Lexer {
 }
 
 func (l *Lexer) Next() token.Token {
-	l.trim()
+	l.space()
 
 	var tk token.Token
 	switch l.peek(0) {
@@ -31,7 +31,15 @@ func (l *Lexer) Next() token.Token {
 	case '*':
 		tk = token.NewToken(token.ASTERISK, string(l.pop()))
 	case '/':
-		tk = token.NewToken(token.SLASH, string(l.pop()))
+		if l.peek(1) == '/' {
+			l.lineComment()
+			tk = l.Next()
+		} else if l.peek(1) == '*' {
+			l.blockComment()
+			tk = l.Next()
+		} else {
+			tk = token.NewToken(token.SLASH, string(l.pop()))
+		}
 	case '%':
 		tk = token.NewToken(token.PERCENT, string(l.pop()))
 	case '.':
@@ -68,7 +76,7 @@ func (l *Lexer) number() token.Token {
 		}
 
 		if !unicode.IsDigit(l.peek(0)) {
-			return token.NewToken(token.ILLEGAL, "Malformed exponent")
+			return l.syntaxError("invalid exponent syntax")
 		}
 		exponent := l.integer()
 		return token.NewToken(token.NUMBER, integer.Literal+"e"+sign+exponent.Literal)
@@ -88,7 +96,7 @@ func (l *Lexer) integer() token.Token {
 		for ch := l.peek(0); ch == '0' || ch == '1' || ch == '_'; ch = l.peek(0) {
 			if ch == '_' {
 				if prev == '_' {
-					return token.NewToken(token.ILLEGAL, "Consecutive underscores")
+					return l.syntaxError("unexpected underscore")
 				}
 				l.pop()
 				continue
@@ -98,7 +106,7 @@ func (l *Lexer) integer() token.Token {
 		}
 
 		if len(literal) == 0 {
-			return token.NewToken(token.ILLEGAL, "Malformed binary")
+			return l.syntaxError("invalid binary number")
 		}
 		return token.NewToken(token.NUMBER, "0b"+string(literal))
 	}
@@ -111,13 +119,13 @@ func (l *Lexer) integer() token.Token {
 		} else if unicode.IsDigit(l.peek(0)) {
 			literal = append(literal, l.pop())
 		} else {
-			return token.NewToken(token.ILLEGAL, "Consecutive underscores")
+			return l.syntaxError("unexpected underscore")
 		}
 		prev = literal[len(literal)-1]
 	}
 
 	if len(literal) > 0 && literal[len(literal)-1] == '_' {
-		return token.NewToken(token.ILLEGAL, "Trailing underscore")
+		return l.syntaxError("unexpected trailing underscore")
 	}
 
 	return token.NewToken(token.NUMBER, string(literal))
@@ -133,7 +141,7 @@ func (l *Lexer) identifier() token.Token {
 
 func (l *Lexer) string(delim rune) token.Token {
 	if l.peek(0) != delim {
-		return token.NewToken(token.ILLEGAL, "Unterminated string")
+		return l.syntaxError("unterminated string literal")
 	}
 	l.pop()
 
@@ -141,7 +149,7 @@ func (l *Lexer) string(delim rune) token.Token {
 	for {
 		ch := l.peek(0)
 		if ch == rune(0) {
-			return token.NewToken(token.ILLEGAL, "Unterminated string")
+			return l.syntaxError("unterminated string literal")
 		}
 		if ch == delim {
 			l.pop()
@@ -152,8 +160,32 @@ func (l *Lexer) string(delim rune) token.Token {
 	return token.NewToken(token.KindString, string(literal))
 }
 
-func (l *Lexer) trim() {
+func (l *Lexer) space() {
 	for unicode.IsSpace(l.peek(0)) {
+		l.pop()
+	}
+}
+
+func (l *Lexer) lineComment() {
+	for ch := l.peek(0); ch != rune(0) && ch != '\n'; ch = l.peek(0) {
+		l.pop()
+	}
+}
+
+func (l *Lexer) blockComment() {
+	l.pop()
+	l.pop()
+
+	for {
+		ch := l.peek(0)
+		if ch == rune(0) {
+			break
+		}
+		if ch == '*' && l.peek(1) == '/' {
+			l.pop()
+			l.pop()
+			break
+		}
 		l.pop()
 	}
 }
@@ -172,4 +204,8 @@ func (l *Lexer) pop() rune {
 	ch := l.source[l.pos]
 	l.pos++
 	return ch
+}
+
+func (l *Lexer) syntaxError(message string) token.Token {
+	return token.NewToken(token.ILLEGAL, fmt.Sprintf("syntax error: %s at position %d", message, l.pos))
 }

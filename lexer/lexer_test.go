@@ -17,6 +17,34 @@ func TestLexer_Next(t *testing.T) {
 			tokens: []token.Token{token.NewToken(token.EOF, "")},
 		},
 		{
+			source: `// comment`,
+			tokens: []token.Token{token.NewToken(token.EOF, "")},
+		},
+		{
+			source: `123 // comment`,
+			tokens: []token.Token{token.NewToken(token.NUMBER, `123`), token.NewToken(token.EOF, "")},
+		},
+		{
+			source: `/* comment */`,
+			tokens: []token.Token{token.NewToken(token.EOF, "")},
+		},
+		{
+			source: `123 /* comment */ 456`,
+			tokens: []token.Token{
+				token.NewToken(token.NUMBER, `123`),
+				token.NewToken(token.NUMBER, `456`),
+				token.NewToken(token.EOF, ""),
+			},
+		},
+		{
+			source: `/* comment
+					 comment */ 789`,
+			tokens: []token.Token{
+				token.NewToken(token.NUMBER, `789`),
+				token.NewToken(token.EOF, ""),
+			},
+		},
+		{
 			source: `1234567890`,
 			tokens: []token.Token{token.NewToken(token.NUMBER, `1234567890`), token.NewToken(token.EOF, "")},
 		},
