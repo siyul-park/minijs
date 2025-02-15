@@ -104,3 +104,89 @@ func TestInterpreter_Execute(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkInterpreter_Execute(b *testing.B) {
+	tests := []struct {
+		instructions []bytecode.Instruction
+		constants    []string
+	}{
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64ADD),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64SUB),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64MUL),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64DIV),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F642C),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 3),
+			},
+			constants: []string{"abc"},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: []string{"abc"},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 1),
+				bytecode.New(bytecode.C2F64),
+			},
+			constants: []string{"1"},
+		},
+	}
+
+	for _, tt := range tests {
+		var code bytecode.Bytecode
+		code.Add(tt.instructions...)
+		for _, c := range tt.constants {
+			code.Store([]byte(c + "\x00"))
+		}
+
+		b.Run(code.String(), func(b *testing.B) {
+			interpreter := New()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				err := interpreter.Execute(code)
+				assert.NoError(b, err)
+			}
+		})
+	}
+}

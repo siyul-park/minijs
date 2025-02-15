@@ -2,7 +2,6 @@ package interpreter
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -25,16 +24,7 @@ func New() *Interpreter {
 }
 
 func (i *Interpreter) Top() any {
-	kind, val := i.top()
-	switch kind {
-	case FLOAT64:
-		v := binary.BigEndian.Uint64(val)
-		return math.Float64frombits(v)
-	case STRING:
-		return string(val)
-	default:
-		return errors.New("unknown type")
-	}
+	return i.decode(i.top())
 }
 
 func (i *Interpreter) Execute(code bytecode.Bytecode) error {
@@ -42,7 +32,8 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 	insns := frame.Instructions()
 	consts := frame.Constants()
 
-	i.call(frame)
+	i.exec(frame)
+	defer i.exit()
 
 	for frame.ip < len(insns)-1 {
 		frame.ip++
@@ -128,19 +119,39 @@ func (i *Interpreter) frame() *Frame {
 	return i.frames[i.fp-1]
 }
 
-func (i *Interpreter) call(f *Frame) {
+func (i *Interpreter) exec(f *Frame) {
+	if len(i.frames) <= i.fp {
+		frames := make([]*Frame, len(i.frames)*2)
+		copy(frames, i.frames)
+		i.frames = frames
+	}
+
 	i.frames[i.fp] = f
 	i.fp++
 }
 
+func (i *Interpreter) exit() {
+	if i.fp == 0 {
+		return
+	}
+	i.fp--
+}
+
+func (i *Interpreter) decode(kind Kind, val []byte) any {
+	switch kind {
+	case FLOAT64:
+		v := binary.BigEndian.Uint64(val)
+		return math.Float64frombits(v)
+	case STRING:
+		return string(val)
+	default:
+		return nil
+	}
+}
+
 func (i *Interpreter) push(kind Kind, val []byte) {
 	size := len(val)
-	if len(i.stack) < i.sp+size+8+1 {
-		stack := make([]byte, (i.sp+size+8+1)*2)
-		copy(stack, i.stack)
-		i.stack = stack
-	}
-
+	i.resize(i.sp + size + 9)
 	copy(i.stack[i.sp:], val)
 	binary.BigEndian.PutUint64(i.stack[i.sp+size:], uint64(size))
 	i.stack[i.sp+size+8] = byte(KIND & kind)
@@ -189,13 +200,7 @@ func (i *Interpreter) top() (Kind, []byte) {
 }
 
 func (i *Interpreter) push64(kind Kind, val uint64) {
-	size := i.sp + 8 + 1
-	if len(i.stack) < size {
-		stack := make([]byte, size*2)
-		copy(stack, i.stack)
-		i.stack = stack
-	}
-
+	i.resize(i.sp + 8 + 1)
 	binary.BigEndian.PutUint64(i.stack[i.sp:], val)
 	i.stack[i.sp+8] = byte(PRIMITIVE | KIND&kind | SIZE&8)
 	i.sp += 9
@@ -212,4 +217,12 @@ func (i *Interpreter) pop64() (Kind, uint64) {
 	val := binary.BigEndian.Uint64(i.stack[i.sp-8 : i.sp])
 	i.sp -= 8
 	return Kind(mark & KIND), val
+}
+
+func (i *Interpreter) resize(size int) {
+	if len(i.stack) < size {
+		stack := make([]byte, size*2)
+		copy(stack, i.stack)
+		i.stack = stack
+	}
 }
