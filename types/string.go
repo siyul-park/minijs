@@ -6,10 +6,6 @@ type String string
 
 const KindString Kind = "string"
 
-func NewString(value string) String {
-	return String(value)
-}
-
 func (v String) Kind() Kind {
 	return KindString
 }

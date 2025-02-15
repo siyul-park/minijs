@@ -8,10 +8,6 @@ type Float64 float64
 
 const KindFloat64 Kind = "float64"
 
-func NewFloat64(value float64) Float64 {
-	return Float64(value)
-}
-
 func (v Float64) Kind() Kind {
 	return KindFloat64
 }

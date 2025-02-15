@@ -24,11 +24,11 @@ const (
 	F64MUL
 	F64DIV
 	F64MOD
-	F642S
+	F642C
 
-	SLOAD
-	SADD
-	S2F64
+	CLOAD
+	CADD
+	C2F64
 )
 
 var types = map[Opcode]*Type{
@@ -41,11 +41,11 @@ var types = map[Opcode]*Type{
 	F64MUL:  {Mnemonic: "f64mul"},
 	F64DIV:  {Mnemonic: "f64div"},
 	F64MOD:  {Mnemonic: "f64mod"},
-	F642S:   {Mnemonic: "f642s"},
+	F642C:   {Mnemonic: "f642c"},
 
-	SLOAD: {Mnemonic: "sload", Widths: []int{4, 4}},
-	SADD:  {Mnemonic: "sadd"},
-	S2F64: {Mnemonic: "s2f64"},
+	CLOAD: {Mnemonic: "cload", Widths: []int{4, 4}},
+	CADD:  {Mnemonic: "cadd"},
+	C2F64: {Mnemonic: "c2f64"},
 }
 
 func TypeOf(op Opcode) *Type {

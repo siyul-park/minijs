@@ -3,14 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/siyul-park/minijs/compiler"
-	"github.com/siyul-park/minijs/interpreter"
-	"github.com/siyul-park/minijs/lexer"
-	"github.com/siyul-park/minijs/parser"
 	"io"
 	"log"
 	"os"
 
+	"github.com/siyul-park/minijs/compiler"
+	"github.com/siyul-park/minijs/interpreter"
+	"github.com/siyul-park/minijs/lexer"
+	"github.com/siyul-park/minijs/parser"
 	"github.com/siyul-park/minijs/repl"
 )
 

@@ -20,11 +20,11 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(F64MUL), expect: "f64mul"},
 		{instruction: New(F64DIV), expect: "f64div"},
 		{instruction: New(F64MOD), expect: "f64mod"},
-		{instruction: New(F642S), expect: "f642s"},
+		{instruction: New(F642C), expect: "f642c"},
 
-		{instruction: New(SLOAD, 0x01, 0x01), expect: "sload 0x1 0x1"},
-		{instruction: New(SADD), expect: "sadd"},
-		{instruction: New(S2F64), expect: "s2f64"},
+		{instruction: New(CLOAD, 0x01, 0x01), expect: "cload 0x1 0x1"},
+		{instruction: New(CADD), expect: "cadd"},
+		{instruction: New(C2F64), expect: "c2f64"},
 	}
 
 	for _, test := range tests {

@@ -28,7 +28,7 @@ func TestCompiler_Compile(t *testing.T) {
 			name: "String Literal",
 			node: ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc"),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.SLOAD, 0, 3),
+				bytecode.New(bytecode.CLOAD, 0, 3),
 			},
 			constants: []string{"abc"},
 		},
@@ -40,9 +40,9 @@ func TestCompiler_Compile(t *testing.T) {
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "bar"}, "bar"),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.SLOAD, 0, 3),
-				bytecode.New(bytecode.SLOAD, 4, 3),
-				bytecode.New(bytecode.SADD),
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CLOAD, 4, 3),
+				bytecode.New(bytecode.CADD),
 			},
 			constants: []string{"foo", "bar"},
 		},

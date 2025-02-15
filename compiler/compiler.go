@@ -18,11 +18,11 @@ type Compiler struct {
 var castOpcode = map[types.Kind]map[types.Kind]bytecode.Opcode{
 	types.KindString: {
 		types.KindString:  bytecode.NOP,
-		types.KindFloat64: bytecode.S2F64,
+		types.KindFloat64: bytecode.C2F64,
 	},
 	types.KindFloat64: {
 		types.KindFloat64: bytecode.NOP,
-		types.KindString:  bytecode.F642S,
+		types.KindString:  bytecode.F642C,
 	},
 }
 
@@ -90,7 +90,7 @@ func (c *Compiler) number(node *ast.NumberLiteral) (types.Kind, error) {
 
 func (c *Compiler) string(node *ast.StringLiteral) (types.Kind, error) {
 	offset, size := c.store(node.Value)
-	c.emit(bytecode.SLOAD, uint64(offset), uint64(size))
+	c.emit(bytecode.CLOAD, uint64(offset), uint64(size))
 	return types.KindString, nil
 }
 
@@ -169,7 +169,7 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (types.Kind, error
 	if left == types.KindString && right == types.KindString {
 		switch node.Token.Type {
 		case token.PLUS:
-			c.emit(bytecode.SADD)
+			c.emit(bytecode.CADD)
 			return types.KindString, nil
 		default:
 			return types.KindUnknown, fmt.Errorf("unsupported operator for string: %s", node.Token.Type)

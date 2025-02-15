@@ -59,15 +59,15 @@ section .text:
  global _main
 
 _main:
- 0000   sload 0x0 0x0
- 0009   sload 0x2 0x2
- 0018   sadd
- 0019   sload 0x2 0x2
- 0028   s2f64
- 0029   f642s
- 0030   sadd
- 0031   sload 0x2 0x2
- 0040   sadd
+ 0000   cload 0x0 0x0
+ 0009   cload 0x2 0x2
+ 0018   cadd
+ 0019   cload 0x2 0x2
+ 0028   c2f64
+ 0029   f642c
+ 0030   cadd
+ 0031   cload 0x2 0x2
+ 0040   cadd
  0041   pop
 
 .section .data:

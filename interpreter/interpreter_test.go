@@ -19,7 +19,7 @@ func TestInterpreter_Execute(t *testing.T) {
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
-			stack: []types.Value{types.NewFloat64(1)},
+			stack: []types.Value{types.Float64(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -27,7 +27,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64ADD),
 			},
-			stack: []types.Value{types.NewFloat64(3)},
+			stack: []types.Value{types.Float64(3)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -35,7 +35,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64SUB),
 			},
-			stack: []types.Value{types.NewFloat64(-1)},
+			stack: []types.Value{types.Float64(-1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -43,7 +43,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64MUL),
 			},
-			stack: []types.Value{types.NewFloat64(2)},
+			stack: []types.Value{types.Float64(2)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -51,38 +51,38 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64DIV),
 			},
-			stack: []types.Value{types.NewFloat64(0.5)},
+			stack: []types.Value{types.Float64(0.5)},
 		},
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
-				bytecode.New(bytecode.F642S),
+				bytecode.New(bytecode.F642C),
 			},
-			stack: []types.Value{types.NewString("1")},
+			stack: []types.Value{types.String("1")},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.SLOAD, 0, 3),
-			},
-			constants: []string{"abc"},
-			stack:     []types.Value{types.NewString("abc")},
-		},
-		{
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.SLOAD, 0, 3),
-				bytecode.New(bytecode.SLOAD, 0, 3),
-				bytecode.New(bytecode.SADD),
+				bytecode.New(bytecode.CLOAD, 0, 3),
 			},
 			constants: []string{"abc"},
-			stack:     []types.Value{types.NewString("abcabc")},
+			stack:     []types.Value{types.String("abc")},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.SLOAD, 0, 1),
-				bytecode.New(bytecode.S2F64),
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: []string{"abc"},
+			stack:     []types.Value{types.String("abcabc")},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 1),
+				bytecode.New(bytecode.C2F64),
 			},
 			constants: []string{"1"},
-			stack:     []types.Value{types.NewFloat64(1)},
+			stack:     []types.Value{types.Float64(1)},
 		},
 	}
 
