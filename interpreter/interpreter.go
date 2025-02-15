@@ -49,7 +49,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.NOP:
 		case bytecode.POP:
 			i.pop()
-		case bytecode.F64LD:
+		case bytecode.F64LOAD:
 			val := binary.BigEndian.Uint64(insns[frame.ip+1:])
 			i.push(types.NewFloat64(math.Float64frombits(val)))
 			frame.ip += 8
@@ -73,19 +73,19 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(types.Float64)
 			val1, _ := i.pop().(types.Float64)
 			i.push(types.NewFloat64(math.Mod(val1.Value, val2.Value)))
-		case bytecode.F642C:
+		case bytecode.F642S:
 			val, _ := i.pop().(types.Float64)
 			i.push(types.NewString(strconv.FormatFloat(val.Value, 'f', -1, 64)))
-		case bytecode.CLD:
+		case bytecode.SLOAD:
 			offset := int(binary.BigEndian.Uint32(insns[frame.ip+1:]))
 			size := int(binary.BigEndian.Uint32(insns[frame.ip+5:]))
 			i.push(types.NewString(string(consts[offset : offset+size])))
 			frame.ip += 8
-		case bytecode.CADD:
+		case bytecode.SADD:
 			val2, _ := i.pop().(types.String)
 			val1, _ := i.pop().(types.String)
 			i.push(types.NewString(val1.Value + val2.Value))
-		case bytecode.C2F64:
+		case bytecode.S2F64:
 			val, _ := i.pop().(types.String)
 			v, err := strconv.ParseFloat(val.Value, 64)
 			if err != nil {

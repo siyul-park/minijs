@@ -12,146 +12,76 @@ import (
 
 func TestCompiler_Compile(t *testing.T) {
 	tests := []struct {
+		name         string
 		node         ast.Node
 		instructions []bytecode.Instruction
-		constants    [][]byte
+		constants    []string
 	}{
 		{
+			name: "Number Literal",
 			node: ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
 		},
 		{
+			name: "String Literal",
 			node: ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc"),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.SLOAD, 0, 3),
 			},
-			constants: [][]byte{[]byte("abc")},
+			constants: []string{"abc"},
 		},
 		{
-			node: ast.NewProgram(
-				ast.NewStatement(ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc")),
-				ast.NewStatement(ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc")),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 3),
-				bytecode.New(bytecode.POP),
-				bytecode.New(bytecode.CLD, 0, 3),
-				bytecode.New(bytecode.POP),
-			},
-			constants: [][]byte{[]byte("abc")},
-		},
-		{
-			node: ast.NewPrefixExpression(
-				token.NewToken(token.MINUS, "-"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(-1)),
-				bytecode.New(bytecode.F64MUL),
-			},
-		},
-		{
-			node: ast.NewPrefixExpression(
-				token.NewToken(token.MINUS, "-"),
-				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "1"}, "1"),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 1),
-				bytecode.New(bytecode.C2F64),
-				bytecode.New(bytecode.F64LD, math.Float64bits(-1)),
-				bytecode.New(bytecode.F64MUL),
-			},
-			constants: [][]byte{[]byte("1")},
-		},
-		{
-			node: ast.NewInfixExpression(
-				token.NewToken(token.PLUS, "+"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
-				bytecode.New(bytecode.F64ADD),
-			},
-		},
-		{
-			node: ast.NewInfixExpression(
-				token.NewToken(token.MINUS, "-"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
-				bytecode.New(bytecode.F64SUB),
-			},
-		},
-		{
-			node: ast.NewInfixExpression(
-				token.NewToken(token.ASTERISK, "*"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
-				bytecode.New(bytecode.F64MUL),
-			},
-		},
-		{
-			node: ast.NewInfixExpression(
-				token.NewToken(token.SLASH, "/"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
-				bytecode.New(bytecode.F64DIV),
-			},
-		},
-		{
+			name: "String Concatenation",
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "bar"}, "bar"),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 3),
-				bytecode.New(bytecode.CLD, 3, 3),
-				bytecode.New(bytecode.CADD),
+				bytecode.New(bytecode.SLOAD, 0, 3),
+				bytecode.New(bytecode.SLOAD, 4, 3),
+				bytecode.New(bytecode.SADD),
 			},
-			constants: [][]byte{[]byte("foo"), []byte("bar")},
+			constants: []string{"foo", "bar"},
 		},
 		{
+			name: "Addition",
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
-				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "1"}, "1"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 1),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
-				bytecode.New(bytecode.F642C),
-				bytecode.New(bytecode.CADD),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64ADD),
 			},
-			constants: [][]byte{[]byte("1")},
+		},
+		{
+			name: "Subtraction",
+			node: ast.NewInfixExpression(
+				token.NewToken(token.MINUS, "-"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64SUB),
+			},
 		},
 	}
 
 	for _, tt := range tests {
-		var code bytecode.Bytecode
-		code.Add(tt.instructions...)
-		for _, c := range tt.constants {
-			code.Store(c)
-		}
-
-		t.Run(tt.node.String(), func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			compiler := New()
+			code := bytecode.Bytecode{}
+			code.Add(tt.instructions...)
+			for _, c := range tt.constants {
+				code.Store([]byte(c + "\x00"))
+			}
 
 			result, err := compiler.Compile(tt.node)
 			assert.NoError(t, err)

@@ -1,14 +1,8 @@
 -include .env
 
-CURRENT_DIR = $(shell realpath .)
+PROJECT = $(shell basename -s .git $(shell git config --get remote.origin.url))
 
-DOCKER_IMAGE = $(shell basename -s .git $(shell git config --get remote.origin.url))
-DOCKER_TAG = $(shell git tag --sort=-v:refname | grep -v '/' | head -n 1 || echo "latest")
-DOCKERFILE = deployments/Dockerfile
-
-CGO_ENABLED ?= 1
-
-.PHONY: init generate build clean tidy update sync check test coverage benchmark lint fmt vet doc docker-build
+.PHONY: init generate build clean tidy update sync check test coverage benchmark lint fmt vet doc
 all: lint test build
 
 init:
@@ -29,7 +23,7 @@ generate:
 build:
 	@go clean -cache
 	@mkdir -p dist
-	@go build -ldflags "-s -w" -o ./dist ./...
+	@go build -ldflags "-s -w" -o ./dist/$(PROJECT) ./cmd/...
 
 clean:
 	@go clean -cache

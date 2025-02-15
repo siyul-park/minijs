@@ -3,6 +3,7 @@ package bytecode
 import (
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 type Bytecode struct {
@@ -45,20 +46,31 @@ func (b *Bytecode) Instruction(offset int) (Instruction, int) {
 func (b *Bytecode) String() string {
 	var out strings.Builder
 
+	out.WriteString("section .text:\n")
+	out.WriteString(" global _main\n\n")
 	out.WriteString("_main:\n")
+
 	offset := 0
 	for offset < len(b.Instructions) {
 		bytecode, read := b.Instruction(offset)
 		if read == 0 {
 			break
 		}
-		fmt.Fprintf(&out, "%04d\t%s\n", offset, bytecode.String())
+		fmt.Fprintf(&out, " %04d\t%s\n", offset, bytecode.String())
 		offset += read
 	}
 
-	out.WriteString(".section data:\n")
-	for i, v := range b.Constants {
-		fmt.Fprintf(&out, "%04d\t0x%X\n", i, v)
+	out.WriteString("\n.section .data:\n")
+	for i := 0; i < len(b.Constants); i++ {
+		fmt.Fprintf(&out, " %04d\t", i)
+		for ; b.Constants[i] != 0 && i < len(b.Constants); i++ {
+			if unicode.IsPrint(rune(b.Constants[i])) {
+				fmt.Fprintf(&out, "%c", rune(b.Constants[i]))
+			} else {
+				fmt.Fprintf(&out, "0x%X", b.Constants[i])
+			}
+		}
+		out.WriteString("\n")
 	}
 
 	return out.String()

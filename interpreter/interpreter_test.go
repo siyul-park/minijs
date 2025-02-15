@@ -12,77 +12,76 @@ import (
 func TestInterpreter_Execute(t *testing.T) {
 	tests := []struct {
 		instructions []bytecode.Instruction
-		constants    [][]byte
+		constants    []string
 		stack        []types.Value
 	}{
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
 			stack: []types.Value{types.NewFloat64(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64ADD),
 			},
 			stack: []types.Value{types.NewFloat64(3)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64SUB),
 			},
 			stack: []types.Value{types.NewFloat64(-1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64MUL),
 			},
 			stack: []types.Value{types.NewFloat64(2)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F64LD, math.Float64bits(2)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64DIV),
 			},
 			stack: []types.Value{types.NewFloat64(0.5)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LD, math.Float64bits(1)),
-				bytecode.New(bytecode.F642C),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F642S),
 			},
 			stack: []types.Value{types.NewString("1")},
 		},
-
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.SLOAD, 0, 3),
 			},
-			constants: [][]byte{[]byte("abc")},
+			constants: []string{"abc"},
 			stack:     []types.Value{types.NewString("abc")},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 3),
-				bytecode.New(bytecode.CLD, 0, 3),
-				bytecode.New(bytecode.CADD),
+				bytecode.New(bytecode.SLOAD, 0, 3),
+				bytecode.New(bytecode.SLOAD, 0, 3),
+				bytecode.New(bytecode.SADD),
 			},
-			constants: [][]byte{[]byte("abc")},
+			constants: []string{"abc"},
 			stack:     []types.Value{types.NewString("abcabc")},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CLD, 0, 1),
-				bytecode.New(bytecode.C2F64),
+				bytecode.New(bytecode.SLOAD, 0, 1),
+				bytecode.New(bytecode.S2F64),
 			},
-			constants: [][]byte{[]byte("1")},
+			constants: []string{"1"},
 			stack:     []types.Value{types.NewFloat64(1)},
 		},
 	}
@@ -91,7 +90,7 @@ func TestInterpreter_Execute(t *testing.T) {
 		var code bytecode.Bytecode
 		code.Add(tt.instructions...)
 		for _, c := range tt.constants {
-			code.Store(c)
+			code.Store([]byte(c + "\x00"))
 		}
 
 		t.Run(code.String(), func(t *testing.T) {

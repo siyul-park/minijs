@@ -2,14 +2,12 @@ package types
 
 import "fmt"
 
-type String struct {
-	Value string
-}
+type String string
 
 const KindString Kind = "string"
 
 func NewString(value string) String {
-	return String{Value: value}
+	return String(value)
 }
 
 func (v String) Kind() Kind {
@@ -17,9 +15,9 @@ func (v String) Kind() Kind {
 }
 
 func (v String) Interface() any {
-	return v.Value
+	return string(v)
 }
 
 func (v String) String() string {
-	return fmt.Sprintf("%q", v.Value)
+	return fmt.Sprintf("%q", string(v))
 }
