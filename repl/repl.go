@@ -24,9 +24,14 @@ func New(prompt string) *REPL {
 func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 	scanner := bufio.NewScanner(reader)
 
+	c := compiler.New()
+	i := interpreter.New()
+
 	for {
-		if _, err := fmt.Fprint(writer, r.prompt); err != nil {
-			return err
+		if r.prompt != "" {
+			if _, err := fmt.Fprint(writer, r.prompt); err != nil {
+				return err
+			}
 		}
 
 		if !scanner.Scan() {
@@ -43,7 +48,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 
 		program, err := p.Parse()
 		if err != nil {
-			if _, err := fmt.Fprintln(writer, err); err != nil {
+			if err := r.error(writer, err); err != nil {
 				return err
 			}
 			continue
@@ -54,18 +59,16 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		c := compiler.New()
 		code, err := c.Compile(stmts[len(stmts)-1].Node)
 		if err != nil {
-			if _, err := fmt.Fprintln(writer, err); err != nil {
+			if err := r.error(writer, err); err != nil {
 				return err
 			}
 			continue
 		}
 
-		i := interpreter.New()
 		if err := i.Execute(code); err != nil {
-			if _, err := fmt.Fprintln(writer, err); err != nil {
+			if err := r.error(writer, err); err != nil {
 				return err
 			}
 			continue
@@ -77,4 +80,11 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 	}
 
 	return nil
+}
+
+func (r *REPL) error(writer io.Writer, err error) error {
+	if _, writeErr := fmt.Fprintln(writer, err); writeErr != nil {
+		return writeErr
+	}
+	return err
 }
