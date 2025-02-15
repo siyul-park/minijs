@@ -83,8 +83,6 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 }
 
 func (r *REPL) error(writer io.Writer, err error) error {
-	if _, writeErr := fmt.Fprintln(writer, err); writeErr != nil {
-		return writeErr
-	}
+	_, err = fmt.Fprintln(writer, err)
 	return err
 }

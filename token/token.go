@@ -8,127 +8,164 @@ type Token struct {
 }
 
 const (
-	EOF        Type = "EOF"
 	ILLEGAL    Type = "ILLEGAL"
 	IDENTIFIER Type = "IDENTIFIER"
 	NUMBER     Type = "NUMBER"
 	BOOLEAN    Type = "BOOLEAN"
 	STRING     Type = "STRING"
-	NULL       Type = "NULL"
-	UNDEFINED  Type = "UNDEFINED"
 	KEYWORD    Type = "KEYWORD"
-
-	PLUS                        Type = "＋"
-	MINUS                       Type = "−"
-	MULTIPLE                    Type = "*"
-	DIVIDE                      Type = "/"
-	MODULAR                     Type = "％"
-	ASSIGN                      Type = "＝"
-	LESS_THAN                   Type = "＜"
-	GREATER_THAN                Type = "＞"
-	NOT                         Type = "!"
-	BIT_AND                     Type = "&"
-	BIT_OR                      Type = "|"
-	BIT_XOR                     Type = "^"
-	BIT_NOT                     Type = "~"
-	EQUAL                       Type = "=="
-	NOT_EQUAL                   Type = "!="
-	LESS_THAN_EQUAL             Type = "<="
-	GREATER_THAN_EQUAL          Type = ">="
-	AND                         Type = "&&"
-	OR                          Type = "||"
-	LEFT_SHIFT                  Type = "<<"
-	RIGHT_SHIFT                 Type = ">>"
-	UNSIGNED_RIGHT_SHIFT        Type = ">>>"
-	PLUS_ASSIGN                 Type = "+="
-	MINUS_ASSIGN                Type = "-="
-	MULTIPLE_ASSIGN             Type = "*="
-	DIVIDE_ASSIGN               Type = "/="
-	MODULAR_ASSIGN              Type = "%="
-	BIT_AND_ASSIGN              Type = "&="
-	BIT_OR_ASSIGN               Type = "|="
-	BIT_XOR_ASSIGN              Type = "^="
-	LEFT_SHIFT_ASSIGN           Type = "<<="
-	RIGHT_SHIFT_ASSIGN          Type = ">>="
-	UNSIGNED_RIGHT_SHIFT_ASSIGN Type = ">>>="
-	ARROW                       Type = "=>"
-
-	PAREN_OPEN    Type = "("
-	PAREN_CLOSE   Type = ")"
-	BRACKET_OPEN  Type = "["
-	BRACKET_CLOSE Type = "]"
-	CURLY_OPEN    Type = "{"
-	CURLY_CLOSE   Type = "}"
-	COMMA         Type = ","
-	PERIOD        Type = "."
-	COLON         Type = ":"
-	SEMICOLON     Type = ";"
-	TEMPLATE      Type = "`"
 )
 
-var keywords = map[string]Type{
-	"true":      BOOLEAN,
-	"false":     BOOLEAN,
-	"NaN":       NUMBER,
-	"Infinity":  NUMBER,
-	"null":      NULL,
-	"undefined": UNDEFINED,
+var (
+	EOF = New("EOF", "")
 
-	"if":       KEYWORD,
-	"else":     KEYWORD,
-	"while":    KEYWORD,
-	"for":      KEYWORD,
-	"return":   KEYWORD,
-	"break":    KEYWORD,
-	"continue": KEYWORD,
-	"switch":   KEYWORD,
-	"case":     KEYWORD,
-	"default":  KEYWORD,
-	"try":      KEYWORD,
-	"catch":    KEYWORD,
-	"finally":  KEYWORD,
-	"throw":    KEYWORD,
-	"new":      KEYWORD,
-	"delete":   KEYWORD,
-	"import":   KEYWORD,
-	"export":   KEYWORD,
-	"extends":  KEYWORD,
-	"super":    KEYWORD,
-	"this":     KEYWORD,
-	"static":   KEYWORD,
-	"yield":    KEYWORD,
-	"await":    KEYWORD,
+	LEFT_PAREN    = New(KEYWORD, "(")
+	RIGHT_PAREN   = New(KEYWORD, ")")
+	LEFT_BRACKET  = New(KEYWORD, "[")
+	RIGHT_BRACKET = New(KEYWORD, "]")
+	LEFT_BRACE    = New(KEYWORD, "{")
+	RIGHT_BRACE   = New(KEYWORD, "}")
+	COMMA         = New(KEYWORD, ",")
+	PERIOD        = New(KEYWORD, ".")
+	COLON         = New(KEYWORD, ":")
+	SEMICOLON     = New(KEYWORD, ";")
 
-	"var":   KEYWORD,
-	"let":   KEYWORD,
-	"const": KEYWORD,
+	PLUS                        = New(KEYWORD, "+")
+	MINUS                       = New(KEYWORD, "−")
+	MULTIPLE                    = New(KEYWORD, "*")
+	DIVIDE                      = New(KEYWORD, "/")
+	MODULO                      = New(KEYWORD, "％")
+	ASSIGN                      = New(KEYWORD, "＝")
+	LESS_THAN                   = New(KEYWORD, "＜")
+	GREATER_THAN                = New(KEYWORD, "＞")
+	NOT                         = New(KEYWORD, "!")
+	BIT_AND                     = New(KEYWORD, "&")
+	BIT_OR                      = New(KEYWORD, "|")
+	BIT_XOR                     = New(KEYWORD, "^")
+	BIT_NOT                     = New(KEYWORD, "~")
+	EQUAL                       = New(KEYWORD, "==")
+	NOT_EQUAL                   = New(KEYWORD, "!=")
+	LESS_THAN_EQUAL             = New(KEYWORD, "<=")
+	GREATER_THAN_EQUAL          = New(KEYWORD, ">=")
+	AND                         = New(KEYWORD, "&&")
+	OR                          = New(KEYWORD, "||")
+	LEFT_SHIFT                  = New(KEYWORD, "<<")
+	RIGHT_SHIFT                 = New(KEYWORD, ">>")
+	UNSIGNED_RIGHT_SHIFT        = New(KEYWORD, ">>>")
+	PLUS_ASSIGN                 = New(KEYWORD, "+=")
+	MINUS_ASSIGN                = New(KEYWORD, "-=")
+	MULTIPLE_ASSIGN             = New(KEYWORD, "*=")
+	DIVIDE_ASSIGN               = New(KEYWORD, "/=")
+	MODULO_ASSIGN               = New(KEYWORD, "%=")
+	BIT_AND_ASSIGN              = New(KEYWORD, "&=")
+	BIT_OR_ASSIGN               = New(KEYWORD, "|=")
+	BIT_XOR_ASSIGN              = New(KEYWORD, "^=")
+	LEFT_SHIFT_ASSIGN           = New(KEYWORD, "<<=")
+	RIGHT_SHIFT_ASSIGN          = New(KEYWORD, ">>=")
+	UNSIGNED_RIGHT_SHIFT_ASSIGN = New(KEYWORD, ">>>=")
 
-	"function":  KEYWORD,
-	"async":     KEYWORD,
-	"generator": KEYWORD,
-	"arguments": KEYWORD,
-	"set":       KEYWORD,
-	"get":       KEYWORD,
+	TRUE      = New(BOOLEAN, "true")
+	FALSE     = New(BOOLEAN, "false")
+	NAN       = New(NUMBER, "NaN")
+	INFINITY  = New(NUMBER, "Infinity")
+	NULL      = New(KEYWORD, "null")
+	UNDEFINED = New(KEYWORD, "undefined")
 
-	"typeof":     KEYWORD,
-	"instanceof": KEYWORD,
-	"in":         KEYWORD,
-	"void":       KEYWORD,
+	IF       = New(KEYWORD, "if")
+	ELSE     = New(KEYWORD, "else")
+	WHILE    = New(KEYWORD, "while")
+	FOR      = New(KEYWORD, "for")
+	RETURN   = New(KEYWORD, "return")
+	BREAK    = New(KEYWORD, "break")
+	CONTINUE = New(KEYWORD, "continue")
+	SWITCH   = New(KEYWORD, "switch")
+	CASE     = New(KEYWORD, "case")
+	DEFAULT  = New(KEYWORD, "default")
+	TRY      = New(KEYWORD, "try")
+	CATCH    = New(KEYWORD, "catch")
+	FINALLY  = New(KEYWORD, "finally")
+	THROW    = New(KEYWORD, "throw")
+	NEW      = New(KEYWORD, "new")
+	DELETE   = New(KEYWORD, "delete")
+	IMPORT   = New(KEYWORD, "import")
+	EXPORT   = New(KEYWORD, "export")
+	EXTENDS  = New(KEYWORD, "extends")
+	SUPER    = New(KEYWORD, "super")
+	THIS     = New(KEYWORD, "this")
+	STATIC   = New(KEYWORD, "static")
+	YIELD    = New(KEYWORD, "yield")
+	AWAIT    = New(KEYWORD, "await")
 
-	"class":     KEYWORD,
-	"interface": KEYWORD,
-	"enum":      KEYWORD,
-	"operator":  KEYWORD,
+	VAR   = New(KEYWORD, "var")
+	LET   = New(KEYWORD, "let")
+	CONST = New(KEYWORD, "const")
+
+	FUNCTION  = New(KEYWORD, "function")
+	ASYNC     = New(KEYWORD, "async")
+	GENERATOR = New(KEYWORD, "generator")
+	ARGUMENTS = New(KEYWORD, "arguments")
+	SET       = New(KEYWORD, "set")
+	GET       = New(KEYWORD, "get")
+	ARROW     = New(KEYWORD, "=>")
+
+	TYPEOF     = New(KEYWORD, "typeof")
+	INSTANCEOF = New(KEYWORD, "instanceof")
+	IN         = New(KEYWORD, "in")
+	VOID       = New(KEYWORD, "void")
+
+	CLASS     = New(KEYWORD, "class")
+	INTERFACE = New(KEYWORD, "interface")
+	ENUM      = New(KEYWORD, "enum")
+	OPERATOR  = New(KEYWORD, "operator")
+)
+
+var keywords = []Token{
+	TRUE, FALSE, NAN, INFINITY, NULL, UNDEFINED,
+	IF, ELSE, WHILE, FOR, RETURN, BREAK, CONTINUE,
+	SWITCH, CASE, DEFAULT, TRY, CATCH, FINALLY,
+	THROW, NEW, DELETE, IMPORT, EXPORT, EXTENDS, SUPER,
+	THIS, STATIC, YIELD, AWAIT, VAR, LET, CONST,
+	FUNCTION, ASYNC, GENERATOR, ARGUMENTS, SET, GET,
+	ARROW, TYPEOF, INSTANCEOF, IN, VOID, CLASS,
+	INTERFACE, ENUM, OPERATOR,
+	LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET, RIGHT_BRACKET, LEFT_BRACE, RIGHT_BRACE,
+	COMMA, PERIOD, COLON, SEMICOLON,
+	PLUS, MINUS, MULTIPLE, DIVIDE, MODULO, ASSIGN,
+	LESS_THAN, GREATER_THAN, NOT, BIT_AND, BIT_OR, BIT_XOR,
+	BIT_NOT, EQUAL, NOT_EQUAL, LESS_THAN_EQUAL, GREATER_THAN_EQUAL,
+	AND, OR, LEFT_SHIFT, RIGHT_SHIFT, UNSIGNED_RIGHT_SHIFT,
+	PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLE_ASSIGN, DIVIDE_ASSIGN,
+	MODULO_ASSIGN, BIT_AND_ASSIGN, BIT_OR_ASSIGN, BIT_XOR_ASSIGN,
+	LEFT_SHIFT_ASSIGN, RIGHT_SHIFT_ASSIGN, UNSIGNED_RIGHT_SHIFT_ASSIGN,
 }
 
-func NewToken(typ Type, literal string) Token {
-	return Token{Type: typ, Literal: literal}
+var types = map[string]Type{}
+
+func init() {
+	for _, keyword := range keywords {
+		types[keyword.Literal] = keyword.Kind()
+	}
 }
 
 func TypeOf(literal string) Type {
-	typ, ok := keywords[literal]
+	typ, ok := types[literal]
 	if !ok {
 		typ = IDENTIFIER
 	}
 	return typ
+}
+
+func New(typ Type, literal string) Token {
+	return Token{Type: typ, Literal: literal}
+}
+
+func (t Token) Kind() Type {
+	if t.Type == KEYWORD {
+		return Type(t.Literal)
+	}
+	return t.Type
+}
+
+func (t Token) String() string {
+	return t.Literal
 }

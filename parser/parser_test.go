@@ -22,16 +22,16 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewStatement(
 					ast.NewInfixExpression(
-						token.NewToken(token.PLUS, "+"),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "a"), "a"),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "b"), "b"),
+						token.PLUS,
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 					),
 				),
 				ast.NewStatement(
 					ast.NewInfixExpression(
-						token.NewToken(token.PLUS, "+"),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "c"), "c"),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "d"), "d"),
+						token.PLUS,
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "c"), "c"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "d"), "d"),
 					),
 				),
 			),
@@ -40,7 +40,7 @@ func TestParser_Parse(t *testing.T) {
 			"1234567890",
 			ast.NewProgram(
 				ast.NewStatement(
-					ast.NewNumberLiteral(token.NewToken(token.NUMBER, "1234567890"), 1234567890),
+					ast.NewNumberLiteral(token.New(token.NUMBER, "1234567890"), 1234567890),
 				),
 			),
 		},
@@ -48,7 +48,7 @@ func TestParser_Parse(t *testing.T) {
 			`"hello"`,
 			ast.NewProgram(
 				ast.NewStatement(
-					ast.NewStringLiteral(token.NewToken(token.STRING, "hello"), "hello"),
+					ast.NewStringLiteral(token.New(token.STRING, "hello"), "hello"),
 				),
 			),
 		},
@@ -56,7 +56,7 @@ func TestParser_Parse(t *testing.T) {
 			"true",
 			ast.NewProgram(
 				ast.NewStatement(
-					ast.NewBoolLiteral(token.NewToken(token.BOOLEAN, "true"), true),
+					ast.NewBoolLiteral(token.New(token.BOOLEAN, "true"), true),
 				),
 			),
 		},
@@ -65,9 +65,9 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewStatement(
 					ast.NewInfixExpression(
-						token.NewToken(token.PLUS, "+"),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "a"), "a"),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "b"), "b"),
+						token.PLUS,
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 					),
 				),
 			),
@@ -77,13 +77,13 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewStatement(
 					ast.NewInfixExpression(
-						token.NewToken(token.PLUS, "+"),
+						token.PLUS,
 						ast.NewInfixExpression(
-							token.NewToken(token.PLUS, "+"),
-							ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "a"), "a"),
-							ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "b"), "b"),
+							token.PLUS,
+							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 						),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "c"), "c"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "c"), "c"),
 					),
 				),
 			),
@@ -93,13 +93,13 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewStatement(
 					ast.NewInfixExpression(
-						token.NewToken(token.PLUS, "+"),
+						token.PLUS,
 						ast.NewInfixExpression(
-							token.NewToken(token.MULTIPLE, "*"),
-							ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "a"), "a"),
-							ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "b"), "b"),
+							token.MULTIPLE,
+							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 						),
-						ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "c"), "c"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "c"), "c"),
 					),
 				),
 			),

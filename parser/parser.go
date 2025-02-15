@@ -34,38 +34,37 @@ const (
 	HIGHEST
 )
 
-// each token precedence
-var precedences = map[token.Type]int{
-	token.PLUS:       SUM,
-	token.MINUS:      SUM,
-	token.MULTIPLE:   PRODUCT,
-	token.DIVIDE:     PRODUCT,
-	token.MODULAR:    MODULO,
-	token.PAREN_OPEN: CALL,
+var precedences = map[string]int{
+	token.PLUS.Literal:       SUM,
+	token.MINUS.Literal:      SUM,
+	token.MULTIPLE.Literal:   PRODUCT,
+	token.DIVIDE.Literal:     PRODUCT,
+	token.MODULO.Literal:     MODULO,
+	token.LEFT_PAREN.Literal: MODULO,
 }
 
 func New(lexer *lexer.Lexer) *Parser {
 	p := &Parser{lexer: lexer, tokens: [3]token.Token{
-		token.NewToken(token.EOF, ""),
+		token.EOF,
 		lexer.Next(),
 		lexer.Next(),
 	}}
 
 	p.prefix = map[token.Type]func() (ast.Node, error){
-		token.NUMBER:     p.numberLiteral,
-		token.STRING:     p.stringLiteral,
-		token.BOOLEAN:    p.boolLiteral,
-		token.IDENTIFIER: p.identifierLiteral,
-		token.PLUS:       p.prefixExpression,
-		token.MINUS:      p.prefixExpression,
-		token.PAREN_OPEN: p.groupedExpression,
+		token.NUMBER:            p.numberLiteral,
+		token.STRING:            p.stringLiteral,
+		token.BOOLEAN:           p.boolLiteral,
+		token.IDENTIFIER:        p.identifierLiteral,
+		token.PLUS.Kind():       p.prefixExpression,
+		token.MINUS.Kind():      p.prefixExpression,
+		token.LEFT_PAREN.Kind(): p.groupedExpression,
 	}
 	p.infix = map[token.Type]func(ast.Node) (ast.Node, error){
-		token.PLUS:     p.infixExpression,
-		token.MINUS:    p.infixExpression,
-		token.MULTIPLE: p.infixExpression,
-		token.DIVIDE:   p.infixExpression,
-		token.MODULAR:  p.infixExpression,
+		token.PLUS.Kind():     p.infixExpression,
+		token.MINUS.Kind():    p.infixExpression,
+		token.MULTIPLE.Kind(): p.infixExpression,
+		token.DIVIDE.Kind():   p.infixExpression,
+		token.MODULO.Kind():   p.infixExpression,
 	}
 
 	return p
@@ -73,7 +72,7 @@ func New(lexer *lexer.Lexer) *Parser {
 
 func (p *Parser) Parse() (*ast.Program, error) {
 	program := &ast.Program{}
-	for p.peek(CURR).Type != token.EOF {
+	for p.peek(CURR) != token.EOF {
 		stmt, err := p.statement()
 		if err != nil {
 			return nil, err
@@ -85,7 +84,7 @@ func (p *Parser) Parse() (*ast.Program, error) {
 }
 
 func (p *Parser) statement() (*ast.Statement, error) {
-	if p.peek(CURR).Type == token.SEMICOLON {
+	if p.peek(CURR) == token.SEMICOLON {
 		p.pop()
 		return ast.NewStatement(nil), nil
 	}
@@ -93,24 +92,25 @@ func (p *Parser) statement() (*ast.Statement, error) {
 	if err != nil {
 		return nil, err
 	}
-	if p.peek(NEXT).Type == token.SEMICOLON {
+	if p.peek(NEXT) == token.SEMICOLON {
 		p.pop()
 	}
 	return ast.NewStatement(exp), nil
 }
 
 func (p *Parser) expression(precedence int) (ast.Node, error) {
-	prefix, ok := p.prefix[p.peek(CURR).Type]
+	prefix, ok := p.prefix[p.peek(CURR).Kind()]
 	if !ok {
-		return nil, fmt.Errorf("no prefix expression function for %s", p.peek(CURR).Type)
+		return nil, fmt.Errorf("no prefix expression function for %s", p.peek(CURR).Kind())
 	}
+
 	left, err := prefix()
 	if err != nil {
 		return nil, err
 	}
 
-	for p.peek(CURR).Type != token.SEMICOLON && precedence < p.precedence(NEXT) {
-		infix, ok := p.infix[p.peek(NEXT).Type]
+	for p.peek(CURR) != token.SEMICOLON && precedence < p.precedence(NEXT) {
+		infix, ok := p.infix[p.peek(NEXT).Kind()]
 		if !ok {
 			return left, nil
 		}
@@ -209,24 +209,17 @@ func (p *Parser) groupedExpression() (ast.Node, error) {
 		return nil, err
 	}
 
-	if err := p.assert(NEXT, token.PAREN_CLOSE); err != nil {
-		return nil, err
+	if p.peek(NEXT) != token.RIGHT_PAREN {
+		return nil, fmt.Errorf("expected next token to be %s, got %s instead", token.RIGHT_PAREN, p.peek(NEXT).Kind())
 	}
 
 	p.pop()
 	return n, nil
 }
 
-func (p *Parser) assert(i int, typ token.Type) error {
-	if p.peek(i).Type != typ {
-		return fmt.Errorf("expected next token to be %s, got %s instead", typ, p.peek(i).Type)
-	}
-	return nil
-}
-
 func (p *Parser) precedence(i int) int {
 	peek := p.peek(i)
-	precedence, ok := precedences[peek.Type]
+	precedence, ok := precedences[peek.Literal]
 	if !ok {
 		return LOWEST
 	}
@@ -235,7 +228,7 @@ func (p *Parser) precedence(i int) int {
 
 func (p *Parser) peek(i int) token.Token {
 	if i >= len(p.tokens) {
-		return token.NewToken(token.EOF, "")
+		return token.EOF
 	}
 	return p.tokens[i]
 }

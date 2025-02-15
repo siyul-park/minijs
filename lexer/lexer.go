@@ -23,57 +23,65 @@ func (l *Lexer) Next() token.Token {
 	var tk token.Token
 	switch l.peek(0) {
 	case rune(0):
-		tk = token.NewToken(token.EOF, "")
+		tk = token.EOF
 
 	case '"', '\'':
 		tk = l.string(l.peek(0))
-	case '`':
-		tk = token.NewToken(token.TEMPLATE, string(l.pop()))
 
 	case '(':
-		tk = token.NewToken(token.PAREN_OPEN, string(l.pop()))
+		l.pop()
+		tk = token.LEFT_PAREN
 	case ')':
-		tk = token.NewToken(token.PAREN_CLOSE, string(l.pop()))
+		l.pop()
+		tk = token.RIGHT_PAREN
 	case '[':
-		tk = token.NewToken(token.BRACKET_OPEN, string(l.pop()))
+		l.pop()
+		tk = token.LEFT_BRACKET
 	case ']':
-		tk = token.NewToken(token.BRACKET_CLOSE, string(l.pop()))
+		l.pop()
+		tk = token.RIGHT_BRACKET
 	case '{':
-		tk = token.NewToken(token.CURLY_OPEN, string(l.pop()))
+		l.pop()
+		tk = token.LEFT_BRACE
 	case '}':
-		tk = token.NewToken(token.CURLY_CLOSE, string(l.pop()))
+		l.pop()
+		tk = token.RIGHT_BRACE
 	case ',':
-		tk = token.NewToken(token.COMMA, string(l.pop()))
+		l.pop()
+		tk = token.COMMA
 	case '.':
-		tk = token.NewToken(token.PERIOD, string(l.pop()))
+		l.pop()
+		tk = token.PERIOD
 	case ':':
-		tk = token.NewToken(token.COLON, string(l.pop()))
+		l.pop()
+		tk = token.COLON
 	case ';':
-		tk = token.NewToken(token.SEMICOLON, string(l.pop()))
+		l.pop()
+		tk = token.SEMICOLON
 
 	case '+':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.PLUS_ASSIGN, "+=")
+			tk = token.PLUS_ASSIGN
 		} else {
-			tk = token.NewToken(token.PLUS, "+")
+			tk = token.PLUS
 		}
 	case '-':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.MINUS_ASSIGN, "-=")
+			tk = token.MINUS_ASSIGN
 		} else {
-			tk = token.NewToken(token.MINUS, "-")
+			tk = token.MINUS
 		}
 	case '*':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.MULTIPLE_ASSIGN, "*=")
+			tk = token.MULTIPLE_ASSIGN
 		} else {
-			tk = token.NewToken(token.MULTIPLE, "*")
+			tk = token.MULTIPLE
 		}
 	case '/':
 		l.pop()
@@ -85,84 +93,85 @@ func (l *Lexer) Next() token.Token {
 			tk = l.Next()
 		} else if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.DIVIDE_ASSIGN, "/=")
+			tk = token.DIVIDE_ASSIGN
 		} else {
-			tk = token.NewToken(token.DIVIDE, "/")
+			tk = token.DIVIDE
 		}
 	case '%':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.MODULAR_ASSIGN, "%=")
+			tk = token.MODULO_ASSIGN
 		} else {
-			tk = token.NewToken(token.MODULAR, "%")
+			tk = token.MODULO
 		}
 	case '=':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.EQUAL, "==")
+			tk = token.EQUAL
 		} else if l.peek(0) == '>' {
 			l.pop()
-			tk = token.NewToken(token.ARROW, "=>")
+			tk = token.ARROW
 		} else {
-			tk = token.NewToken(token.ASSIGN, "=")
+			tk = token.ASSIGN
 		}
 	case '!':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.NOT_EQUAL, "!=")
+			tk = token.NOT_EQUAL
 		} else {
-			tk = token.NewToken(token.NOT, "!")
+			tk = token.NOT
 		}
 	case '&':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.BIT_AND_ASSIGN, "&=")
+			tk = token.BIT_AND_ASSIGN
 		} else if l.peek(0) == '&' {
 			l.pop()
-			tk = token.NewToken(token.AND, "&&")
+			tk = token.AND
 		} else {
-			tk = token.NewToken(token.BIT_AND, "&")
+			tk = token.BIT_AND
 		}
 	case '|':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.BIT_OR_ASSIGN, "|=")
+			tk = token.BIT_OR_ASSIGN
 		} else if l.peek(0) == '|' {
 			l.pop()
-			tk = token.NewToken(token.OR, "||")
+			tk = token.OR
 		} else {
-			tk = token.NewToken(token.BIT_OR, "|")
+			tk = token.BIT_OR
 		}
 	case '^':
 		l.pop()
 		if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.BIT_XOR_ASSIGN, "^=")
+			tk = token.BIT_XOR_ASSIGN
 		} else {
-			tk = token.NewToken(token.BIT_XOR, "^")
+			tk = token.BIT_XOR
 		}
 	case '~':
-		tk = token.NewToken(token.BIT_NOT, string(l.pop()))
+		l.pop()
+		tk = token.BIT_NOT
 	case '<':
 		l.pop()
 		if l.peek(0) == '<' {
 			l.pop()
 			if l.peek(0) == '=' {
 				l.pop()
-				tk = token.NewToken(token.LEFT_SHIFT_ASSIGN, "<<=")
+				tk = token.LEFT_SHIFT_ASSIGN
 			} else {
-				tk = token.NewToken(token.LEFT_SHIFT, "<<")
+				tk = token.LEFT_SHIFT
 			}
 		} else if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.LESS_THAN_EQUAL, "<=")
+			tk = token.LESS_THAN_EQUAL
 		} else {
-			tk = token.NewToken(token.LESS_THAN, "<")
+			tk = token.LESS_THAN
 		}
 	case '>':
 		l.pop()
@@ -172,21 +181,21 @@ func (l *Lexer) Next() token.Token {
 				l.pop()
 				if l.peek(0) == '=' {
 					l.pop()
-					tk = token.NewToken(token.UNSIGNED_RIGHT_SHIFT_ASSIGN, ">>>=")
+					tk = token.UNSIGNED_RIGHT_SHIFT_ASSIGN
 				} else {
-					tk = token.NewToken(token.UNSIGNED_RIGHT_SHIFT, ">>>")
+					tk = token.UNSIGNED_RIGHT_SHIFT
 				}
 			} else if l.peek(0) == '=' {
 				l.pop()
-				tk = token.NewToken(token.RIGHT_SHIFT_ASSIGN, ">>=")
+				tk = token.RIGHT_SHIFT_ASSIGN
 			} else {
-				tk = token.NewToken(token.RIGHT_SHIFT, ">>")
+				tk = token.RIGHT_SHIFT
 			}
 		} else if l.peek(0) == '=' {
 			l.pop()
-			tk = token.NewToken(token.GREATER_THAN_EQUAL, ">=")
+			tk = token.GREATER_THAN_EQUAL
 		} else {
-			tk = token.NewToken(token.GREATER_THAN, ">")
+			tk = token.GREATER_THAN
 		}
 
 	default:
@@ -219,7 +228,7 @@ func (l *Lexer) number() token.Token {
 			return l.syntaxError("invalid exponent syntax")
 		}
 		exponent := l.integer()
-		return token.NewToken(token.NUMBER, integer.Literal+"e"+sign+exponent.Literal)
+		return token.New(token.NUMBER, integer.Literal+"e"+sign+exponent.Literal)
 	}
 
 	return integer
@@ -248,7 +257,7 @@ func (l *Lexer) integer() token.Token {
 			if len(literal) == 0 {
 				return l.syntaxError("invalid binary number")
 			}
-			return token.NewToken(token.NUMBER, "0b"+string(literal))
+			return token.New(token.NUMBER, "0b"+string(literal))
 
 		case 'o', 'O':
 			l.pop()
@@ -267,7 +276,7 @@ func (l *Lexer) integer() token.Token {
 			if len(literal) == 0 {
 				return l.syntaxError("invalid octal number")
 			}
-			return token.NewToken(token.NUMBER, "0o"+string(literal))
+			return token.New(token.NUMBER, "0o"+string(literal))
 
 		case 'x', 'X':
 			l.pop()
@@ -286,7 +295,7 @@ func (l *Lexer) integer() token.Token {
 			if len(literal) == 0 {
 				return l.syntaxError("invalid hexadecimal number")
 			}
-			return token.NewToken(token.NUMBER, "0x"+string(literal))
+			return token.New(token.NUMBER, "0x"+string(literal))
 		}
 	}
 
@@ -307,7 +316,7 @@ func (l *Lexer) integer() token.Token {
 	if len(literal) > 0 && literal[len(literal)-1] == '_' {
 		return l.syntaxError("unexpected trailing underscore")
 	}
-	return token.NewToken(token.NUMBER, string(literal))
+	return token.New(token.NUMBER, string(literal))
 }
 
 func (l *Lexer) identifier() token.Token {
@@ -329,7 +338,7 @@ func (l *Lexer) identifier() token.Token {
 	}
 
 	keyword := builder.String()
-	return token.NewToken(token.TypeOf(keyword), keyword)
+	return token.New(token.TypeOf(keyword), keyword)
 }
 
 func (l *Lexer) string(delim rune) token.Token {
@@ -350,7 +359,7 @@ func (l *Lexer) string(delim rune) token.Token {
 		}
 		literal = append(literal, l.pop())
 	}
-	return token.NewToken(token.STRING, string(literal))
+	return token.New(token.STRING, string(literal))
 }
 
 func (l *Lexer) space() {
@@ -400,5 +409,5 @@ func (l *Lexer) pop() rune {
 }
 
 func (l *Lexer) syntaxError(message string) token.Token {
-	return token.NewToken(token.ILLEGAL, fmt.Sprintf("syntax error: %s at position %d", message, l.pos))
+	return token.New(token.ILLEGAL, fmt.Sprintf("syntax error: %s at position %d", message, l.pos))
 }
