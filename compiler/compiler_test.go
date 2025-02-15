@@ -71,7 +71,7 @@ func TestCompiler_Compile(t *testing.T) {
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
-				ast.NewStringLiteral(token.Token{Type: token.KindString, Literal: "2"}, "2"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
@@ -162,7 +162,7 @@ func TestCompiler_Compile(t *testing.T) {
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
-				ast.NewStringLiteral(token.Token{Type: token.KindString, Literal: "2"}, "2"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
@@ -222,7 +222,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 
 		{
-			node: ast.NewStringLiteral(token.Token{Type: token.KindString, Literal: "abc"}, "abc"),
+			node: ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc"),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.CLOAD, 0, 3),
 			},
@@ -231,8 +231,8 @@ func TestCompiler_Compile(t *testing.T) {
 		{
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
-				ast.NewStringLiteral(token.Token{Type: token.KindString, Literal: "foo"}, "foo"),
-				ast.NewStringLiteral(token.Token{Type: token.KindString, Literal: "bar"}, "bar"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "bar"}, "bar"),
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.CLOAD, 0, 3),

@@ -2,8 +2,10 @@ package lexer
 
 import (
 	"fmt"
-	"github.com/siyul-park/minijs/token"
+	"strings"
 	"unicode"
+
+	"github.com/siyul-park/minijs/token"
 )
 
 type Lexer struct {
@@ -43,13 +45,21 @@ func (l *Lexer) Next() token.Token {
 	case '%':
 		tk = token.NewToken(token.PERCENT, string(l.pop()))
 	case '.':
-		tk = token.NewToken(token.DOT, string(l.pop()))
+		tk = token.NewToken(token.PERIOD, string(l.pop()))
 	case '(':
 		tk = token.NewToken(token.LPAREN, string(l.pop()))
 	case ')':
 		tk = token.NewToken(token.RPAREN, string(l.pop()))
 	case ';':
 		tk = token.NewToken(token.SEMICOLON, string(l.pop()))
+	case '{':
+		tk = token.NewToken(token.LBRACE, string(l.pop()))
+	case '}':
+		tk = token.NewToken(token.RBRACE, string(l.pop()))
+	case ',':
+		tk = token.NewToken(token.COMMA, string(l.pop()))
+	case '=':
+		tk = token.NewToken(token.EQUAL, "=")
 	default:
 		if unicode.IsDigit(l.peek(0)) {
 			tk = l.number()
@@ -132,11 +142,25 @@ func (l *Lexer) integer() token.Token {
 }
 
 func (l *Lexer) identifier() token.Token {
-	var literal []rune
-	for unicode.IsLetter(l.peek(0)) || unicode.IsDigit(l.peek(0)) {
-		literal = append(literal, l.pop())
+	var builder strings.Builder
+
+	ch := l.peek(0)
+	if !unicode.IsLetter(ch) && ch != '_' && ch != '$' {
+		return l.syntaxError("invalid identifier start")
 	}
-	return token.NewToken(token.TypeOf(string(literal)), string(literal))
+
+	builder.WriteRune(l.pop())
+
+	for {
+		ch := l.peek(0)
+		if !unicode.IsLetter(ch) && !unicode.IsDigit(ch) && ch != '_' && ch != '$' {
+			break
+		}
+		builder.WriteRune(l.pop())
+	}
+
+	keyword := builder.String()
+	return token.NewToken(token.TypeOf(keyword), keyword)
 }
 
 func (l *Lexer) string(delim rune) token.Token {
@@ -157,7 +181,7 @@ func (l *Lexer) string(delim rune) token.Token {
 		}
 		literal = append(literal, l.pop())
 	}
-	return token.NewToken(token.KindString, string(literal))
+	return token.NewToken(token.STRING, string(literal))
 }
 
 func (l *Lexer) space() {

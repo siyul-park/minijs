@@ -126,7 +126,7 @@ func TestLexer_Next(t *testing.T) {
 		},
 		{
 			source: `"abcdefg"`,
-			tokens: []token.Token{token.NewToken(token.KindString, `abcdefg`), token.NewToken(token.EOF, "")},
+			tokens: []token.Token{token.NewToken(token.STRING, `abcdefg`), token.NewToken(token.EOF, "")},
 		},
 		{
 			source: `true`,
@@ -158,7 +158,7 @@ func TestLexer_Next(t *testing.T) {
 		},
 		{
 			source: `.`,
-			tokens: []token.Token{token.NewToken(token.DOT, `.`), token.NewToken(token.EOF, "")},
+			tokens: []token.Token{token.NewToken(token.PERIOD, `.`), token.NewToken(token.EOF, "")},
 		},
 		{
 			source: `%`,
@@ -194,15 +194,15 @@ func TestLexer_Next(t *testing.T) {
 		},
 		{
 			source: `foo.bar`,
-			tokens: []token.Token{token.NewToken(token.IDENTIFIER, `foo`), token.NewToken(token.DOT, `.`), token.NewToken(token.IDENTIFIER, `bar`), token.NewToken(token.EOF, "")},
+			tokens: []token.Token{token.NewToken(token.IDENTIFIER, `foo`), token.NewToken(token.PERIOD, `.`), token.NewToken(token.IDENTIFIER, `bar`), token.NewToken(token.EOF, "")},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.source, func(t *testing.T) {
-			lexer := New(tt.source)
-			for _, token := range tt.tokens {
-				assert.Equal(t, token, lexer.Next())
+			l := New(tt.source)
+			for _, tk := range tt.tokens {
+				assert.Equal(t, tk, l.Next())
 			}
 		})
 	}
