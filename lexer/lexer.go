@@ -24,42 +24,171 @@ func (l *Lexer) Next() token.Token {
 	switch l.peek(0) {
 	case rune(0):
 		tk = token.NewToken(token.EOF, "")
+
 	case '"', '\'':
 		tk = l.string(l.peek(0))
-	case '+':
-		tk = token.NewToken(token.PLUS, string(l.pop()))
-	case '-':
-		tk = token.NewToken(token.MINUS, string(l.pop()))
-	case '*':
-		tk = token.NewToken(token.ASTERISK, string(l.pop()))
-	case '/':
-		if l.peek(1) == '/' {
-			l.lineComment()
-			tk = l.Next()
-		} else if l.peek(1) == '*' {
-			l.blockComment()
-			tk = l.Next()
-		} else {
-			tk = token.NewToken(token.SLASH, string(l.pop()))
-		}
-	case '%':
-		tk = token.NewToken(token.PERCENT, string(l.pop()))
-	case '.':
-		tk = token.NewToken(token.PERIOD, string(l.pop()))
+	case '`':
+		tk = token.NewToken(token.TEMPLATE, string(l.pop()))
+
 	case '(':
-		tk = token.NewToken(token.LPAREN, string(l.pop()))
+		tk = token.NewToken(token.PAREN_OPEN, string(l.pop()))
 	case ')':
-		tk = token.NewToken(token.RPAREN, string(l.pop()))
-	case ';':
-		tk = token.NewToken(token.SEMICOLON, string(l.pop()))
+		tk = token.NewToken(token.PAREN_CLOSE, string(l.pop()))
+	case '[':
+		tk = token.NewToken(token.BRACKET_OPEN, string(l.pop()))
+	case ']':
+		tk = token.NewToken(token.BRACKET_CLOSE, string(l.pop()))
 	case '{':
-		tk = token.NewToken(token.LBRACE, string(l.pop()))
+		tk = token.NewToken(token.CURLY_OPEN, string(l.pop()))
 	case '}':
-		tk = token.NewToken(token.RBRACE, string(l.pop()))
+		tk = token.NewToken(token.CURLY_CLOSE, string(l.pop()))
 	case ',':
 		tk = token.NewToken(token.COMMA, string(l.pop()))
+	case '.':
+		tk = token.NewToken(token.PERIOD, string(l.pop()))
+	case ':':
+		tk = token.NewToken(token.COLON, string(l.pop()))
+	case ';':
+		tk = token.NewToken(token.SEMICOLON, string(l.pop()))
+
+	case '+':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.PLUS_ASSIGN, "+=")
+		} else {
+			tk = token.NewToken(token.PLUS, "+")
+		}
+	case '-':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.MINUS_ASSIGN, "-=")
+		} else {
+			tk = token.NewToken(token.MINUS, "-")
+		}
+	case '*':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.MULTIPLE_ASSIGN, "*=")
+		} else {
+			tk = token.NewToken(token.MULTIPLE, "*")
+		}
+	case '/':
+		l.pop()
+		if l.peek(0) == '/' {
+			l.lineComment()
+			tk = l.Next()
+		} else if l.peek(0) == '*' {
+			l.blockComment()
+			tk = l.Next()
+		} else if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.DIVIDE_ASSIGN, "/=")
+		} else {
+			tk = token.NewToken(token.DIVIDE, "/")
+		}
+	case '%':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.MODULAR_ASSIGN, "%=")
+		} else {
+			tk = token.NewToken(token.MODULAR, "%")
+		}
 	case '=':
-		tk = token.NewToken(token.EQUAL, "=")
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.EQUAL, "==")
+		} else if l.peek(0) == '>' {
+			l.pop()
+			tk = token.NewToken(token.ARROW, "=>")
+		} else {
+			tk = token.NewToken(token.ASSIGN, "=")
+		}
+	case '!':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.NOT_EQUAL, "!=")
+		} else {
+			tk = token.NewToken(token.NOT, "!")
+		}
+	case '&':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.BIT_AND_ASSIGN, "&=")
+		} else if l.peek(0) == '&' {
+			l.pop()
+			tk = token.NewToken(token.AND, "&&")
+		} else {
+			tk = token.NewToken(token.BIT_AND, "&")
+		}
+	case '|':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.BIT_OR_ASSIGN, "|=")
+		} else if l.peek(0) == '|' {
+			l.pop()
+			tk = token.NewToken(token.OR, "||")
+		} else {
+			tk = token.NewToken(token.BIT_OR, "|")
+		}
+	case '^':
+		l.pop()
+		if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.BIT_XOR_ASSIGN, "^=")
+		} else {
+			tk = token.NewToken(token.BIT_XOR, "^")
+		}
+	case '~':
+		tk = token.NewToken(token.BIT_NOT, string(l.pop()))
+	case '<':
+		l.pop()
+		if l.peek(0) == '<' {
+			l.pop()
+			if l.peek(0) == '=' {
+				l.pop()
+				tk = token.NewToken(token.LEFT_SHIFT_ASSIGN, "<<=")
+			} else {
+				tk = token.NewToken(token.LEFT_SHIFT, "<<")
+			}
+		} else if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.LESS_THAN_EQUAL, "<=")
+		} else {
+			tk = token.NewToken(token.LESS_THAN, "<")
+		}
+	case '>':
+		l.pop()
+		if l.peek(0) == '>' {
+			l.pop()
+			if l.peek(0) == '>' {
+				l.pop()
+				if l.peek(0) == '=' {
+					l.pop()
+					tk = token.NewToken(token.UNSIGNED_RIGHT_SHIFT_ASSIGN, ">>>=")
+				} else {
+					tk = token.NewToken(token.UNSIGNED_RIGHT_SHIFT, ">>>")
+				}
+			} else if l.peek(0) == '=' {
+				l.pop()
+				tk = token.NewToken(token.RIGHT_SHIFT_ASSIGN, ">>=")
+			} else {
+				tk = token.NewToken(token.RIGHT_SHIFT, ">>")
+			}
+		} else if l.peek(0) == '=' {
+			l.pop()
+			tk = token.NewToken(token.GREATER_THAN_EQUAL, ">=")
+		} else {
+			tk = token.NewToken(token.GREATER_THAN, ">")
+		}
+
 	default:
 		if unicode.IsDigit(l.peek(0)) {
 			tk = l.number()
@@ -67,6 +196,7 @@ func (l *Lexer) Next() token.Token {
 			tk = l.identifier()
 		}
 	}
+
 	return tk
 }
 
@@ -99,45 +229,84 @@ func (l *Lexer) integer() token.Token {
 	var literal []rune
 	prev := rune(0)
 
-	if l.peek(0) == '0' && (l.peek(1) == 'b' || l.peek(1) == 'B') {
-		l.pop()
-		l.pop()
-
-		for ch := l.peek(0); ch == '0' || ch == '1' || ch == '_'; ch = l.peek(0) {
-			if ch == '_' {
-				if prev == '_' {
-					return l.syntaxError("unexpected underscore")
+	if l.peek(0) == '0' {
+		switch l.peek(1) {
+		case 'b', 'B':
+			l.pop()
+			l.pop()
+			for ch := l.peek(0); ch == '0' || ch == '1' || ch == '_'; ch = l.peek(0) {
+				if ch == '_' {
+					if prev == '_' {
+						return l.syntaxError("unexpected underscore")
+					}
+					l.pop()
+					continue
 				}
-				l.pop()
-				continue
+				literal = append(literal, l.pop())
+				prev = literal[len(literal)-1]
 			}
-			literal = append(literal, l.pop())
-			prev = literal[len(literal)-1]
-		}
+			if len(literal) == 0 {
+				return l.syntaxError("invalid binary number")
+			}
+			return token.NewToken(token.NUMBER, "0b"+string(literal))
 
-		if len(literal) == 0 {
-			return l.syntaxError("invalid binary number")
+		case 'o', 'O':
+			l.pop()
+			l.pop()
+			for ch := l.peek(0); '0' <= ch && ch <= '7' || ch == '_'; ch = l.peek(0) {
+				if ch == '_' {
+					if prev == '_' {
+						return l.syntaxError("unexpected underscore")
+					}
+					l.pop()
+					continue
+				}
+				literal = append(literal, l.pop())
+				prev = literal[len(literal)-1]
+			}
+			if len(literal) == 0 {
+				return l.syntaxError("invalid octal number")
+			}
+			return token.NewToken(token.NUMBER, "0o"+string(literal))
+
+		case 'x', 'X':
+			l.pop()
+			l.pop()
+			for ch := l.peek(0); unicode.IsDigit(ch) || ('a' <= ch && ch <= 'f') || ('A' <= ch && ch <= 'F') || ch == '_'; ch = l.peek(0) {
+				if ch == '_' {
+					if prev == '_' {
+						return l.syntaxError("unexpected underscore")
+					}
+					l.pop()
+					continue
+				}
+				literal = append(literal, l.pop())
+				prev = literal[len(literal)-1]
+			}
+			if len(literal) == 0 {
+				return l.syntaxError("invalid hexadecimal number")
+			}
+			return token.NewToken(token.NUMBER, "0x"+string(literal))
 		}
-		return token.NewToken(token.NUMBER, "0b"+string(literal))
 	}
 
 	literal = append(literal, l.pop())
 
 	for unicode.IsDigit(l.peek(0)) || l.peek(0) == '_' {
-		if l.peek(0) == '_' && prev != '_' {
+		if l.peek(0) == '_' {
+			if prev == '_' {
+				return l.syntaxError("unexpected underscore")
+			}
 			l.pop()
-		} else if unicode.IsDigit(l.peek(0)) {
-			literal = append(literal, l.pop())
-		} else {
-			return l.syntaxError("unexpected underscore")
+			continue
 		}
+		literal = append(literal, l.pop())
 		prev = literal[len(literal)-1]
 	}
 
 	if len(literal) > 0 && literal[len(literal)-1] == '_' {
 		return l.syntaxError("unexpected trailing underscore")
 	}
-
 	return token.NewToken(token.NUMBER, string(literal))
 }
 

@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/lexer"
@@ -35,12 +36,12 @@ const (
 
 // each token precedence
 var precedences = map[token.Type]int{
-	token.PLUS:     SUM,
-	token.MINUS:    SUM,
-	token.ASTERISK: PRODUCT,
-	token.SLASH:    PRODUCT,
-	token.PERCENT:  MODULO,
-	token.LPAREN:   CALL,
+	token.PLUS:       SUM,
+	token.MINUS:      SUM,
+	token.MULTIPLE:   PRODUCT,
+	token.DIVIDE:     PRODUCT,
+	token.MODULAR:    MODULO,
+	token.PAREN_OPEN: CALL,
 }
 
 func New(lexer *lexer.Lexer) *Parser {
@@ -57,14 +58,14 @@ func New(lexer *lexer.Lexer) *Parser {
 		token.IDENTIFIER: p.identifierLiteral,
 		token.PLUS:       p.prefixExpression,
 		token.MINUS:      p.prefixExpression,
-		token.LPAREN:     p.groupedExpression,
+		token.PAREN_OPEN: p.groupedExpression,
 	}
 	p.infix = map[token.Type]func(ast.Node) (ast.Node, error){
 		token.PLUS:     p.infixExpression,
 		token.MINUS:    p.infixExpression,
-		token.ASTERISK: p.infixExpression,
-		token.SLASH:    p.infixExpression,
-		token.PERCENT:  p.infixExpression,
+		token.MULTIPLE: p.infixExpression,
+		token.DIVIDE:   p.infixExpression,
+		token.MODULAR:  p.infixExpression,
 	}
 
 	return p
@@ -130,18 +131,32 @@ func (p *Parser) numberLiteral() (ast.Node, error) {
 		return ast.NewNumberLiteral(curr, 0), nil
 	}
 
-	if len(curr.Literal) > 2 && curr.Literal[:2] == "0b" {
-		binaryValue := curr.Literal[2:]
-		value, err := strconv.ParseInt(binaryValue, 2, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid binary literal: %s", curr.Literal)
-		}
-		return ast.NewNumberLiteral(curr, float64(value)), nil
+	lit := curr.Literal
+	base := 10
+	if strings.HasPrefix(lit, "0b") || strings.HasPrefix(lit, "0B") {
+		base = 2
+		lit = lit[2:]
+	} else if strings.HasPrefix(lit, "0o") || strings.HasPrefix(lit, "0O") { // 8진수 (0o)
+		base = 8
+		lit = lit[2:]
+	} else if strings.HasPrefix(lit, "0x") || strings.HasPrefix(lit, "0X") { // 16진수 (0x)
+		base = 16
+		lit = lit[2:]
 	}
 
-	value, err := strconv.ParseFloat(curr.Literal, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid number literal: %s", curr.Literal)
+	var value float64
+	if base == 10 {
+		parsedValue, err := strconv.ParseFloat(lit, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid number literal: %s", curr.Literal)
+		}
+		value = parsedValue
+	} else {
+		parsedValue, err := strconv.ParseInt(lit, base, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid %d-based literal: %s", base, curr.Literal)
+		}
+		value = float64(parsedValue)
 	}
 	return ast.NewNumberLiteral(curr, value), nil
 }
@@ -194,7 +209,7 @@ func (p *Parser) groupedExpression() (ast.Node, error) {
 		return nil, err
 	}
 
-	if err := p.assert(NEXT, token.RPAREN); err != nil {
+	if err := p.assert(NEXT, token.PAREN_CLOSE); err != nil {
 		return nil, err
 	}
 

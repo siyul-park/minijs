@@ -146,7 +146,7 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 		left, right = interpreter.KindString, interpreter.KindString
 	}
 
-	if left == interpreter.KindFloat64 || right == interpreter.KindFloat64 || node.Token.Type == token.SLASH || node.Token.Type == token.PERCENT {
+	if left == interpreter.KindFloat64 || right == interpreter.KindFloat64 || node.Token.Type == token.DIVIDE || node.Token.Type == token.MODULAR {
 		left, right = interpreter.KindFloat64, interpreter.KindFloat64
 	}
 
@@ -178,7 +178,7 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 		case token.MINUS:
 			c.emit(bytecode.I32SUB)
 			return interpreter.KindInt32, nil
-		case token.ASTERISK:
+		case token.MULTIPLE:
 			c.emit(bytecode.I32MUL)
 			return interpreter.KindInt32, nil
 		default:
@@ -194,13 +194,13 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 		case token.MINUS:
 			c.emit(bytecode.F64SUB)
 			return interpreter.KindFloat64, nil
-		case token.ASTERISK:
+		case token.MULTIPLE:
 			c.emit(bytecode.F64MUL)
 			return interpreter.KindFloat64, nil
-		case token.SLASH:
+		case token.DIVIDE:
 			c.emit(bytecode.F64DIV)
 			return interpreter.KindFloat64, nil
-		case token.PERCENT:
+		case token.MODULAR:
 			c.emit(bytecode.F64MOD)
 			return interpreter.KindFloat64, nil
 		default:

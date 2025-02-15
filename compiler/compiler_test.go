@@ -95,7 +95,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.NewToken(token.ASTERISK, "*"),
+				token.NewToken(token.MULTIPLE, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
@@ -107,7 +107,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.NewToken(token.SLASH, "/"),
+				token.NewToken(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
@@ -186,7 +186,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.NewToken(token.ASTERISK, "*"),
+				token.NewToken(token.MULTIPLE, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -198,7 +198,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.NewToken(token.SLASH, "/"),
+				token.NewToken(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -210,7 +210,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.NewToken(token.PERCENT, "%"),
+				token.NewToken(token.MODULAR, "%"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),

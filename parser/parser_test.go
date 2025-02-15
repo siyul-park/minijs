@@ -95,7 +95,7 @@ func TestParser_Parse(t *testing.T) {
 					ast.NewInfixExpression(
 						token.NewToken(token.PLUS, "+"),
 						ast.NewInfixExpression(
-							token.NewToken(token.ASTERISK, "*"),
+							token.NewToken(token.MULTIPLE, "*"),
 							ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "a"), "a"),
 							ast.NewIdentifierLiteral(token.NewToken(token.IDENTIFIER, "b"), "b"),
 						),
