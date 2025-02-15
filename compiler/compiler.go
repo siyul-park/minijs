@@ -16,6 +16,16 @@ type Compiler struct {
 	constants map[string]int
 }
 
+var castOpcode = map[types.Kind]map[types.Kind]bytecode.Opcode{
+	types.KindString: {
+		types.KindString:  bytecode.NOP,
+		types.KindFloat64: bytecode.C2F64,
+	},
+	types.KindFloat64: {
+		types.KindFloat64: bytecode.NOP,
+	},
+}
+
 func New(node ast.Node) *Compiler {
 	return &Compiler{
 		node:      node,
@@ -89,19 +99,24 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (types.Kind, err
 	if err != nil {
 		return types.KindUnknown, err
 	}
-	if right == types.KindFloat64 {
-		switch node.Token.Type {
-		case token.PLUS:
-			return types.KindFloat64, nil
-		case token.MINUS:
+
+	switch node.Token.Type {
+	case token.PLUS, token.MINUS:
+		opcode, ok := castOpcode[right][types.KindFloat64]
+		if !ok {
+			return types.KindUnknown, fmt.Errorf("unsupported cast from %s to %s", right, types.KindFloat64)
+		}
+		if opcode != bytecode.NOP {
+			c.emit(opcode)
+		}
+		if node.Token.Type == token.MINUS {
 			c.emit(bytecode.F64LD, math.Float64bits(-1))
 			c.emit(bytecode.F64MUL)
-			return types.KindFloat64, nil
-		default:
-			return types.KindUnknown, fmt.Errorf("invalid token for prefix expression: %s", node.Token.Type)
 		}
+		return types.KindFloat64, nil
+	default:
+		return types.KindUnknown, fmt.Errorf("invalid token for prefix expression: %s", node.Token.Type)
 	}
-	return types.KindUnknown, fmt.Errorf("invalid operand type for prefix expression: %s", right)
 }
 
 func (c *Compiler) infixExpression(node *ast.InfixExpression) (types.Kind, error) {

@@ -27,6 +27,7 @@ const (
 
 	CLD
 	CADD
+	C2F64
 )
 
 var types = map[Opcode]*Type{
@@ -40,8 +41,9 @@ var types = map[Opcode]*Type{
 	F64DIV: {Mnemonic: "f64div"},
 	F64MOD: {Mnemonic: "f64mod"},
 
-	CLD:  {Mnemonic: "cld", Widths: []int{4, 4}},
-	CADD: {Mnemonic: "cadd"},
+	CLD:   {Mnemonic: "cld", Widths: []int{4, 4}},
+	CADD:  {Mnemonic: "cadd"},
+	C2F64: {Mnemonic: "c2f64"},
 }
 
 func TypeOf(op Opcode) *Type {

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/siyul-park/minijs/types"
@@ -81,6 +82,13 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(types.String)
 			val1, _ := i.pop().(types.String)
 			i.push(types.NewString(val1.Value + val2.Value))
+		case bytecode.C2F64:
+			val, _ := i.pop().(types.String)
+			v, err := strconv.ParseFloat(val.Value, 64)
+			if err != nil {
+				v = math.NaN()
+			}
+			i.push(types.NewFloat64(v))
 		default:
 			typ := bytecode.TypeOf(opcode)
 			if typ == nil {

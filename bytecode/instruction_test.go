@@ -23,6 +23,7 @@ func TestInstruction_String(t *testing.T) {
 
 		{instruction: New(CLD, 0x01, 0x01), expect: "cld 0x1 0x1"},
 		{instruction: New(CADD), expect: "cadd"},
+		{instruction: New(C2F64), expect: "c2f64"},
 	}
 
 	for _, test := range tests {

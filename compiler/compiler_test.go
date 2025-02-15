@@ -54,6 +54,19 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 		},
 		{
+			node: ast.NewPrefixExpression(
+				token.NewToken(token.MINUS, "-"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "1"}, "1"),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLD, 0, 1),
+				bytecode.New(bytecode.C2F64),
+				bytecode.New(bytecode.F64LD, math.Float64bits(-1)),
+				bytecode.New(bytecode.F64MUL),
+			},
+			constants: [][]byte{[]byte("1")},
+		},
+		{
 			node: ast.NewInfixExpression(
 				token.NewToken(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),

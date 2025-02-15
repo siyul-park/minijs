@@ -70,6 +70,14 @@ func TestInterpreter_Execute(t *testing.T) {
 			constants: [][]byte{[]byte("abc")},
 			stack:     []types.Value{types.NewString("abcabc")},
 		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLD, 0, 1),
+				bytecode.New(bytecode.C2F64),
+			},
+			constants: [][]byte{[]byte("1")},
+			stack:     []types.Value{types.NewFloat64(1)},
+		},
 	}
 
 	for _, tt := range tests {
