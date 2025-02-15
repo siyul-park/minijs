@@ -29,7 +29,7 @@ generate:
 build:
 	@go clean -cache
 	@mkdir -p dist
-	@cd cmd && CGO_ENABLED=$(CGO_ENABLED) go build -ldflags "-s -w" -o ../dist ./...
+	@go build -ldflags "-s -w" -o ./dist ./...
 
 clean:
 	@go clean -cache

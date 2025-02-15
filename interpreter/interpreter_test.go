@@ -61,11 +61,20 @@ func TestInterpreter_Execute(t *testing.T) {
 			constants: [][]byte{[]byte("abc")},
 			stack:     []types.Value{types.NewString("abc")},
 		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: [][]byte{[]byte("abc")},
+			stack:     []types.Value{types.NewString("abcabc")},
+		},
 	}
 
 	for _, tt := range tests {
 		var code bytecode.Bytecode
-		code.Append(tt.instructions...)
+		code.Add(tt.instructions...)
 		for _, c := range tt.constants {
 			code.Store(c)
 		}

@@ -1,7 +1,6 @@
 package compiler
 
 import (
-	"errors"
 	"fmt"
 	"math"
 
@@ -21,13 +20,13 @@ func New(node ast.Node) *Compiler {
 }
 
 func (c *Compiler) Compile() (bytecode.Bytecode, error) {
-	if err := c.compile(c.node); err != nil {
+	if _, err := c.compile(c.node); err != nil {
 		return bytecode.Bytecode{}, err
 	}
 	return c.code, nil
 }
 
-func (c *Compiler) compile(node ast.Node) error {
+func (c *Compiler) compile(node ast.Node) (types.Kind, error) {
 	switch node := node.(type) {
 	case *ast.Program:
 		return c.program(node)
@@ -42,28 +41,28 @@ func (c *Compiler) compile(node ast.Node) error {
 	case *ast.InfixExpression:
 		return c.infixExpression(node)
 	default:
-		return fmt.Errorf("unsupported operand type: %T", node)
+		return types.KindUnknown, fmt.Errorf("unsupported operand type: %T", node)
 	}
 }
 
-func (c *Compiler) program(node *ast.Program) error {
+func (c *Compiler) program(node *ast.Program) (types.Kind, error) {
 	for _, n := range node.Statements {
-		if err := c.statement(n); err != nil {
-			return err
+		if _, err := c.statement(n); err != nil {
+			return types.KindUnknown, err
 		}
 	}
-	return nil
+	return types.KindVoid, nil
 }
 
-func (c *Compiler) statement(node *ast.Statement) error {
-	if err := c.compile(node.Node); err != nil {
-		return err
+func (c *Compiler) statement(node *ast.Statement) (types.Kind, error) {
+	if _, err := c.compile(node.Node); err != nil {
+		return types.KindUnknown, err
 	}
 	c.emit(bytecode.POP)
-	return nil
+	return types.KindVoid, nil
 }
 
-func (c *Compiler) number(node *ast.NumberLiteral) error {
+func (c *Compiler) number(node *ast.NumberLiteral) (types.Kind, error) {
 	switch node.Token.Literal {
 	case "NaN":
 		c.emit(bytecode.F64LD, math.Float64bits(math.NaN()))
@@ -72,83 +71,80 @@ func (c *Compiler) number(node *ast.NumberLiteral) error {
 	default:
 		c.emit(bytecode.F64LD, math.Float64bits(node.Value))
 	}
-	return nil
+	return types.KindFloat64, nil
 }
 
-func (c *Compiler) string(node *ast.StringLiteral) error {
+func (c *Compiler) string(node *ast.StringLiteral) (types.Kind, error) {
 	offset, size := c.store([]byte(node.Value))
 	c.emit(bytecode.CLD, uint64(offset), uint64(size))
-	return nil
+	return types.KindString, nil
 }
 
-func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
-	if err := c.compile(node.Right); err != nil {
-		return err
+func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (types.Kind, error) {
+	right, err := c.compile(node.Right)
+	if err != nil {
+		return types.KindUnknown, err
 	}
-	switch node.Token.Type {
-	case token.PLUS:
-	case token.MINUS:
-		c.emit(bytecode.F64LD, math.Float64bits(-1))
-		c.emit(bytecode.F64MUL)
-	default:
-		return errors.New("invalid token")
+	if right == types.KindFloat64 {
+		switch node.Token.Type {
+		case token.PLUS:
+			return types.KindFloat64, nil
+		case token.MINUS:
+			c.emit(bytecode.F64LD, math.Float64bits(-1))
+			c.emit(bytecode.F64MUL)
+			return types.KindFloat64, nil
+		default:
+			return types.KindUnknown, fmt.Errorf("invalid token for prefix expression: %s", node.Token.Type)
+		}
 	}
-	return nil
+	return types.KindUnknown, fmt.Errorf("invalid operand type for prefix expression: %s", right)
 }
 
-func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
-	if err := c.compile(node.Left); err != nil {
-		return err
+func (c *Compiler) infixExpression(node *ast.InfixExpression) (types.Kind, error) {
+	left, err := c.compile(node.Left)
+	if err != nil {
+		return types.KindUnknown, err
 	}
-	if err := c.compile(node.Right); err != nil {
-		return err
+	right, err := c.compile(node.Right)
+	if err != nil {
+		return types.KindUnknown, err
 	}
 
-	switch c.kind(node.Left) {
-	case types.KindFloat64:
+	if left == types.KindFloat64 && right == types.KindFloat64 {
 		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.F64ADD)
+			return types.KindFloat64, nil
 		case token.MINUS:
 			c.emit(bytecode.F64SUB)
+			return types.KindFloat64, nil
 		case token.ASTERISK:
 			c.emit(bytecode.F64MUL)
+			return types.KindFloat64, nil
 		case token.SLASH:
 			c.emit(bytecode.F64DIV)
+			return types.KindFloat64, nil
 		case token.PERCENT:
 			c.emit(bytecode.F64MOD)
+			return types.KindFloat64, nil
 		default:
-			return fmt.Errorf("invalid operator for float64: %s", node.Token.Type)
+			return types.KindUnknown, fmt.Errorf("unsupported operator for float64: %s", node.Token.Type)
 		}
-	default:
-		return fmt.Errorf("unsupported operand type: %s", c.kind(node.Left))
 	}
-	return nil
+	if left == types.KindString && right == types.KindString {
+		switch node.Token.Type {
+		case token.PLUS:
+			c.emit(bytecode.CADD)
+			return types.KindString, nil
+		default:
+			return types.KindUnknown, fmt.Errorf("unsupported operator for string: %s", node.Token.Type)
+		}
+	}
+	return types.KindUnknown, fmt.Errorf("unsupported operator for types %s and %s: %s", left, right, node.Token.Type)
 }
 
-func (c *Compiler) kind(node ast.Node) types.Kind {
-	switch node := node.(type) {
-	case *ast.Program, *ast.Statement:
-		return types.KindVoid
-	case *ast.NumberLiteral:
-		return types.KindFloat64
-	case *ast.StringLiteral:
-		return types.KindString
-	case *ast.PrefixExpression:
-		return c.kind(node.Right)
-	case *ast.InfixExpression:
-		left := c.kind(node.Left)
-		right := c.kind(node.Right)
-		if left == right {
-			return left
-		}
-		return types.KindUnknown
-	}
-	return types.KindUnknown
-}
-
-func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) {
-	c.code.Append(bytecode.New(op, operands...))
+func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) int {
+	return c.code.Add(bytecode.New(op, operands...))
 }
 
 func (c *Compiler) store(val []byte) (int, int) {

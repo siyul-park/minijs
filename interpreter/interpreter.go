@@ -77,6 +77,10 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			size := int(binary.BigEndian.Uint32(insns[frame.ip+5:]))
 			i.push(types.NewString(string(consts[offset : offset+size])))
 			frame.ip += 8
+		case bytecode.CADD:
+			val2, _ := i.pop().(types.String)
+			val1, _ := i.pop().(types.String)
+			i.push(types.NewString(val1.Value + val2.Value))
 		default:
 			typ := bytecode.TypeOf(opcode)
 			if typ == nil {

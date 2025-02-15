@@ -10,9 +10,17 @@ type Bytecode struct {
 	Constants    []byte
 }
 
-func (b *Bytecode) Append(instructions ...Instruction) {
+func (b *Bytecode) Add(instructions ...Instruction) int {
+	offset := len(b.Instructions)
 	for _, instruction := range instructions {
 		b.Instructions = append(b.Instructions, instruction...)
+	}
+	return offset
+}
+
+func (b *Bytecode) Replace(offset int, instruction Instruction) {
+	for i := 0; i < len(instruction) && offset+i < len(b.Instructions); i++ {
+		b.Instructions[offset+i] = instruction[i]
 	}
 }
 

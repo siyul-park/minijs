@@ -88,11 +88,24 @@ func TestCompiler_Compile(t *testing.T) {
 				bytecode.New(bytecode.F64DIV),
 			},
 		},
+		{
+			node: ast.NewInfixExpression(
+				token.NewToken(token.PLUS, "+"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
+				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "bar"}, "bar"),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.CLD, 3, 3),
+				bytecode.New(bytecode.CADD),
+			},
+			constants: [][]byte{[]byte("foo"), []byte("bar")},
+		},
 	}
 
 	for _, tt := range tests {
 		var code bytecode.Bytecode
-		code.Append(tt.instructions...)
+		code.Add(tt.instructions...)
 		for _, c := range tt.constants {
 			code.Store(c)
 		}
