@@ -11,12 +11,16 @@ import (
 )
 
 type Compiler struct {
-	node ast.Node
-	code bytecode.Bytecode
+	node      ast.Node
+	code      bytecode.Bytecode
+	constants map[string]int
 }
 
 func New(node ast.Node) *Compiler {
-	return &Compiler{node: node}
+	return &Compiler{
+		node:      node,
+		constants: make(map[string]int),
+	}
 }
 
 func (c *Compiler) Compile() (bytecode.Bytecode, error) {
@@ -75,8 +79,8 @@ func (c *Compiler) number(node *ast.NumberLiteral) (types.Kind, error) {
 }
 
 func (c *Compiler) string(node *ast.StringLiteral) (types.Kind, error) {
-	offset, size := c.store([]byte(node.Value))
-	c.emit(bytecode.CLD, uint64(offset), uint64(size))
+	offset := c.store(node.Value)
+	c.emit(bytecode.CLD, uint64(offset), uint64(len(node.Value)))
 	return types.KindString, nil
 }
 
@@ -147,6 +151,11 @@ func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) int {
 	return c.code.Add(bytecode.New(op, operands...))
 }
 
-func (c *Compiler) store(val []byte) (int, int) {
-	return c.code.Store(val)
+func (c *Compiler) store(val string) int {
+	offset, ok := c.constants[val]
+	if !ok {
+		offset = c.code.Store([]byte(val))
+		c.constants[val] = offset
+	}
+	return offset
 }

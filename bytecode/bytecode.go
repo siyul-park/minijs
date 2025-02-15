@@ -24,10 +24,10 @@ func (b *Bytecode) Replace(offset int, instruction Instruction) {
 	}
 }
 
-func (b *Bytecode) Store(constants []byte) (int, int) {
+func (b *Bytecode) Store(constants []byte) int {
 	offset := len(b.Constants)
 	b.Constants = append(b.Constants, constants...)
-	return offset, len(constants)
+	return offset
 }
 
 func (b *Bytecode) Instruction(offset int) (Instruction, int) {

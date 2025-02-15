@@ -30,6 +30,19 @@ func TestCompiler_Compile(t *testing.T) {
 			constants: [][]byte{[]byte("abc")},
 		},
 		{
+			node: ast.NewProgram(
+				ast.NewStatement(ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc")),
+				ast.NewStatement(ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "abc"}, "abc")),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.POP),
+				bytecode.New(bytecode.CLD, 0, 3),
+				bytecode.New(bytecode.POP),
+			},
+			constants: [][]byte{[]byte("abc")},
+		},
+		{
 			node: ast.NewPrefixExpression(
 				token.NewToken(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
