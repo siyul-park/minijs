@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/siyul-park/minijs/bytecode"
-	"github.com/siyul-park/minijs/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,13 +12,13 @@ func TestInterpreter_Execute(t *testing.T) {
 	tests := []struct {
 		instructions []bytecode.Instruction
 		constants    []string
-		stack        []types.Value
+		stack        []any
 	}{
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 			},
-			stack: []types.Value{types.Float64(1)},
+			stack: []any{float64(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -27,7 +26,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64ADD),
 			},
-			stack: []types.Value{types.Float64(3)},
+			stack: []any{float64(3)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -35,7 +34,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64SUB),
 			},
-			stack: []types.Value{types.Float64(-1)},
+			stack: []any{float64(-1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -43,7 +42,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64MUL),
 			},
-			stack: []types.Value{types.Float64(2)},
+			stack: []any{float64(2)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -51,21 +50,21 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64DIV),
 			},
-			stack: []types.Value{types.Float64(0.5)},
+			stack: []any{0.5},
 		},
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
 				bytecode.New(bytecode.F642C),
 			},
-			stack: []types.Value{types.String("1")},
+			stack: []any{"1"},
 		},
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.CLOAD, 0, 3),
 			},
 			constants: []string{"abc"},
-			stack:     []types.Value{types.String("abc")},
+			stack:     []any{"abc"},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -74,7 +73,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.CADD),
 			},
 			constants: []string{"abc"},
-			stack:     []types.Value{types.String("abcabc")},
+			stack:     []any{"abcabc"},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -82,7 +81,7 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.C2F64),
 			},
 			constants: []string{"1"},
-			stack:     []types.Value{types.Float64(1)},
+			stack:     []any{float64(1)},
 		},
 	}
 
@@ -99,8 +98,8 @@ func TestInterpreter_Execute(t *testing.T) {
 			err := interpreter.Execute(code)
 			assert.NoError(t, err)
 
-			for i, val := range tt.stack {
-				assert.Equal(t, val, interpreter.Peek(i))
+			for _, val := range tt.stack {
+				assert.Equal(t, val, interpreter.Top())
 			}
 		})
 	}

@@ -2,12 +2,12 @@ package compiler
 
 import (
 	"fmt"
+	"github.com/siyul-park/minijs/interpreter"
 	"math"
 
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/siyul-park/minijs/token"
-	"github.com/siyul-park/minijs/types"
 )
 
 type Compiler struct {
@@ -15,14 +15,14 @@ type Compiler struct {
 	constants map[string]int
 }
 
-var castOpcode = map[types.Kind]map[types.Kind]bytecode.Opcode{
-	types.KindString: {
-		types.KindString:  bytecode.NOP,
-		types.KindFloat64: bytecode.C2F64,
+var castOpcode = map[interpreter.Kind]map[interpreter.Kind]bytecode.Opcode{
+	interpreter.STRING: {
+		interpreter.STRING:  bytecode.NOP,
+		interpreter.FLOAT64: bytecode.C2F64,
 	},
-	types.KindFloat64: {
-		types.KindFloat64: bytecode.NOP,
-		types.KindString:  bytecode.F642C,
+	interpreter.FLOAT64: {
+		interpreter.FLOAT64: bytecode.NOP,
+		interpreter.STRING:  bytecode.F642C,
 	},
 }
 
@@ -40,7 +40,7 @@ func (c *Compiler) Compile(node ast.Node) (bytecode.Bytecode, error) {
 	return code, err
 }
 
-func (c *Compiler) compile(node ast.Node) (types.Kind, error) {
+func (c *Compiler) compile(node ast.Node) (interpreter.Kind, error) {
 	switch node := node.(type) {
 	case *ast.Program:
 		return c.program(node)
@@ -55,28 +55,28 @@ func (c *Compiler) compile(node ast.Node) (types.Kind, error) {
 	case *ast.InfixExpression:
 		return c.infixExpression(node)
 	default:
-		return types.KindUnknown, fmt.Errorf("unsupported operand type: %T", node)
+		return interpreter.UNKNOWN, fmt.Errorf("unsupported operand type: %T", node)
 	}
 }
 
-func (c *Compiler) program(node *ast.Program) (types.Kind, error) {
+func (c *Compiler) program(node *ast.Program) (interpreter.Kind, error) {
 	for _, n := range node.Statements {
 		if _, err := c.statement(n); err != nil {
-			return types.KindUnknown, err
+			return interpreter.UNKNOWN, err
 		}
 	}
-	return types.KindVoid, nil
+	return interpreter.VOID, nil
 }
 
-func (c *Compiler) statement(node *ast.Statement) (types.Kind, error) {
+func (c *Compiler) statement(node *ast.Statement) (interpreter.Kind, error) {
 	if _, err := c.compile(node.Node); err != nil {
-		return types.KindUnknown, err
+		return interpreter.UNKNOWN, err
 	}
 	c.emit(bytecode.POP)
-	return types.KindVoid, nil
+	return interpreter.VOID, nil
 }
 
-func (c *Compiler) number(node *ast.NumberLiteral) (types.Kind, error) {
+func (c *Compiler) number(node *ast.NumberLiteral) (interpreter.Kind, error) {
 	switch node.Token.Literal {
 	case "NaN":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.NaN()))
@@ -85,103 +85,103 @@ func (c *Compiler) number(node *ast.NumberLiteral) (types.Kind, error) {
 	default:
 		c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
 	}
-	return types.KindFloat64, nil
+	return interpreter.FLOAT64, nil
 }
 
-func (c *Compiler) string(node *ast.StringLiteral) (types.Kind, error) {
+func (c *Compiler) string(node *ast.StringLiteral) (interpreter.Kind, error) {
 	offset, size := c.store(node.Value)
 	c.emit(bytecode.CLOAD, uint64(offset), uint64(size))
-	return types.KindString, nil
+	return interpreter.STRING, nil
 }
 
-func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (types.Kind, error) {
+func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (interpreter.Kind, error) {
 	right, err := c.compile(node.Right)
 	if err != nil {
-		return types.KindUnknown, err
+		return interpreter.UNKNOWN, err
 	}
 
 	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
-		if _, err := c.cast(right, types.KindFloat64); err != nil {
-			return types.KindUnknown, err
+		if _, err := c.cast(right, interpreter.FLOAT64); err != nil {
+			return interpreter.UNKNOWN, err
 		}
 		if node.Token.Type == token.MINUS {
 			c.emit(bytecode.F64LOAD, math.Float64bits(-1))
 			c.emit(bytecode.F64MUL)
 		}
-		return types.KindFloat64, nil
+		return interpreter.FLOAT64, nil
 	default:
-		return types.KindUnknown, fmt.Errorf("invalid token for prefix expression: %s", node.Token.Type)
+		return interpreter.UNKNOWN, fmt.Errorf("invalid token for prefix expression: %s", node.Token.Type)
 	}
 }
 
-func (c *Compiler) infixExpression(node *ast.InfixExpression) (types.Kind, error) {
+func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind, error) {
 	left := c.kind(node.Left)
 	right := c.kind(node.Right)
 
-	if left == types.KindString || right == types.KindString {
-		left, right = types.KindString, types.KindString
+	if left == interpreter.STRING || right == interpreter.STRING {
+		left, right = interpreter.STRING, interpreter.STRING
 	}
 
 	left, err := c.compile(node.Left)
 	if err != nil {
-		return types.KindUnknown, err
+		return interpreter.UNKNOWN, err
 	}
 	if left != right {
 		left, err = c.cast(left, right)
 		if err != nil {
-			return types.KindUnknown, err
+			return interpreter.UNKNOWN, err
 		}
 	}
 
 	right, err = c.compile(node.Right)
 	if err != nil {
-		return types.KindUnknown, err
+		return interpreter.UNKNOWN, err
 	}
 	if right != left {
 		right, err = c.cast(right, left)
 		if err != nil {
-			return types.KindUnknown, err
+			return interpreter.UNKNOWN, err
 		}
 	}
 
-	if left == types.KindFloat64 && right == types.KindFloat64 {
+	if left == interpreter.FLOAT64 && right == interpreter.FLOAT64 {
 		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.F64ADD)
-			return types.KindFloat64, nil
+			return interpreter.FLOAT64, nil
 		case token.MINUS:
 			c.emit(bytecode.F64SUB)
-			return types.KindFloat64, nil
+			return interpreter.FLOAT64, nil
 		case token.ASTERISK:
 			c.emit(bytecode.F64MUL)
-			return types.KindFloat64, nil
+			return interpreter.FLOAT64, nil
 		case token.SLASH:
 			c.emit(bytecode.F64DIV)
-			return types.KindFloat64, nil
+			return interpreter.FLOAT64, nil
 		case token.PERCENT:
 			c.emit(bytecode.F64MOD)
-			return types.KindFloat64, nil
+			return interpreter.FLOAT64, nil
 		default:
-			return types.KindUnknown, fmt.Errorf("unsupported operator for float64: %s", node.Token.Type)
+			return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for float64: %s", node.Token.Type)
 		}
 	}
-	if left == types.KindString && right == types.KindString {
+	if left == interpreter.STRING && right == interpreter.STRING {
 		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.CADD)
-			return types.KindString, nil
+			return interpreter.STRING, nil
 		default:
-			return types.KindUnknown, fmt.Errorf("unsupported operator for string: %s", node.Token.Type)
+			return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for string: %s", node.Token.Type)
 		}
 	}
-	return types.KindUnknown, fmt.Errorf("unsupported operator for types %s and %s: %s", left, right, node.Token.Type)
+	return interpreter.UNKNOWN, fmt.Errorf("unsupported operator for types %s and %s: %s", left, right, node.Token.Type)
 }
 
-func (c *Compiler) cast(from, to types.Kind) (types.Kind, error) {
+func (c *Compiler) cast(from, to interpreter.Kind) (interpreter.Kind, error) {
 	opcode, ok := castOpcode[from][to]
 	if !ok {
-		return types.KindUnknown, fmt.Errorf("unsupported cast from %s to %s", from, to)
+		return interpreter.UNKNOWN, fmt.Errorf("unsupported cast from %s to %s", from, to)
 	}
 	if opcode != bytecode.NOP {
 		c.emit(opcode)
@@ -189,7 +189,7 @@ func (c *Compiler) cast(from, to types.Kind) (types.Kind, error) {
 	return to, nil
 }
 
-func (c *Compiler) kind(node ast.Node) types.Kind {
+func (c *Compiler) kind(node ast.Node) interpreter.Kind {
 	p := New()
 	kind, _ := p.compile(node)
 	return kind

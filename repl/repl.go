@@ -74,7 +74,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		if _, err := fmt.Fprintln(writer, i.Peek(0)); err != nil {
+		if _, err := fmt.Fprintln(writer, i.Top()); err != nil {
 			return err
 		}
 	}
