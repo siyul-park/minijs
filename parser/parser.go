@@ -2,10 +2,11 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/lexer"
 	"github.com/siyul-park/minijs/token"
-	"strconv"
 )
 
 type Parser struct {

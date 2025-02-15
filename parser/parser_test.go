@@ -1,9 +1,10 @@
 package parser
 
 import (
+	"testing"
+
 	"github.com/siyul-park/minijs/lexer"
 	"github.com/stretchr/testify/assert"
-	"testing"
 
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/token"

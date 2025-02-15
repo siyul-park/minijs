@@ -3,7 +3,6 @@ package bytecode
 import (
 	"encoding/binary"
 	"fmt"
-	"unsafe"
 )
 
 type Instruction []byte
@@ -18,29 +17,35 @@ type Type struct {
 const (
 	NOP Opcode = iota
 	POP
-	F64LOAD
+
+	F64LD
 	F64ADD
 	F64SUB
 	F64MUL
 	F64DIV
 	F64MOD
+
+	CLD
 )
 
 var types = map[Opcode]*Type{
-	NOP:     {Mnemonic: "nop", Widths: []int{}},
-	POP:     {Mnemonic: "pop", Widths: []int{}},
-	F64LOAD: {Mnemonic: "f64load", Widths: []int{int(unsafe.Sizeof(float64(0)))}},
-	F64ADD:  {Mnemonic: "f64add", Widths: []int{}},
-	F64SUB:  {Mnemonic: "f64sub", Widths: []int{}},
-	F64MUL:  {Mnemonic: "f64mul", Widths: []int{}},
-	F64DIV:  {Mnemonic: "f64div", Widths: []int{}},
-	F64MOD:  {Mnemonic: "f64mod", Widths: []int{}},
+	NOP: {Mnemonic: "nop"},
+	POP: {Mnemonic: "pop"},
+
+	F64LD:  {Mnemonic: "f64ld", Widths: []int{8}},
+	F64ADD: {Mnemonic: "f64add"},
+	F64SUB: {Mnemonic: "f64sub"},
+	F64MUL: {Mnemonic: "f64mul"},
+	F64DIV: {Mnemonic: "f64div"},
+	F64MOD: {Mnemonic: "f64mod"},
+
+	CLD: {Mnemonic: "cld", Widths: []int{4, 4}},
 }
 
 func TypeOf(op Opcode) *Type {
 	typ, ok := types[op]
 	if !ok {
-		return types[NOP]
+		return nil
 	}
 	return typ
 }

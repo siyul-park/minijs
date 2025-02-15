@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/siyul-park/minijs/repl"
 	"log"
 	"os"
+
+	"github.com/siyul-park/minijs/repl"
 )
 
 func main() {

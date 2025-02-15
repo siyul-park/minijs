@@ -3,11 +3,12 @@ package compiler
 import (
 	"errors"
 	"fmt"
+	"math"
+
 	"github.com/siyul-park/minijs/ast"
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/siyul-park/minijs/token"
 	"github.com/siyul-park/minijs/types"
-	"math"
 )
 
 type Compiler struct {
@@ -34,6 +35,8 @@ func (c *Compiler) compile(node ast.Node) error {
 		return c.statement(node)
 	case *ast.NumberLiteral:
 		return c.number(node)
+	case *ast.StringLiteral:
+		return c.string(node)
 	case *ast.PrefixExpression:
 		return c.prefixExpression(node)
 	case *ast.InfixExpression:
@@ -63,12 +66,18 @@ func (c *Compiler) statement(node *ast.Statement) error {
 func (c *Compiler) number(node *ast.NumberLiteral) error {
 	switch node.Token.Literal {
 	case "NaN":
-		c.emit(bytecode.F64LOAD, math.Float64bits(math.NaN()))
+		c.emit(bytecode.F64LD, math.Float64bits(math.NaN()))
 	case "Infinity":
-		c.emit(bytecode.F64LOAD, math.Float64bits(math.Inf(1)))
+		c.emit(bytecode.F64LD, math.Float64bits(math.Inf(1)))
 	default:
-		c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
+		c.emit(bytecode.F64LD, math.Float64bits(node.Value))
 	}
+	return nil
+}
+
+func (c *Compiler) string(node *ast.StringLiteral) error {
+	offset, size := c.store([]byte(node.Value))
+	c.emit(bytecode.CLD, uint64(offset), uint64(size))
 	return nil
 }
 
@@ -79,7 +88,7 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
 	switch node.Token.Type {
 	case token.PLUS:
 	case token.MINUS:
-		c.emit(bytecode.F64LOAD, math.Float64bits(-1))
+		c.emit(bytecode.F64LD, math.Float64bits(-1))
 		c.emit(bytecode.F64MUL)
 	default:
 		return errors.New("invalid token")
@@ -123,6 +132,8 @@ func (c *Compiler) kind(node ast.Node) types.Kind {
 		return types.KindVoid
 	case *ast.NumberLiteral:
 		return types.KindFloat64
+	case *ast.StringLiteral:
+		return types.KindString
 	case *ast.PrefixExpression:
 		return c.kind(node.Right)
 	case *ast.InfixExpression:
@@ -138,4 +149,8 @@ func (c *Compiler) kind(node ast.Node) types.Kind {
 
 func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) {
 	c.code.Append(bytecode.New(op, operands...))
+}
+
+func (c *Compiler) store(val []byte) (int, int) {
+	return c.code.Store(val)
 }

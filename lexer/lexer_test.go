@@ -1,9 +1,10 @@
 package lexer
 
 import (
+	"testing"
+
 	"github.com/siyul-park/minijs/token"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestLexer_Next(t *testing.T) {

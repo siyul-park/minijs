@@ -3,9 +3,10 @@ package interpreter
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
+
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/siyul-park/minijs/types"
-	"math"
 )
 
 type Interpreter struct {
@@ -33,6 +34,7 @@ func (i *Interpreter) Peek(offset int) types.Value {
 func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 	frame := NewFrame(code, 0)
 	insns := frame.Instructions()
+	consts := frame.Constants()
 
 	i.call(frame)
 
@@ -46,8 +48,8 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.NOP:
 		case bytecode.POP:
 			i.pop()
-		case bytecode.F64LOAD:
-			val := binary.BigEndian.Uint64(insns[frame.ip+1 : frame.ip+9])
+		case bytecode.F64LD:
+			val := binary.BigEndian.Uint64(insns[frame.ip+1:])
 			i.push(types.NewFloat64(math.Float64frombits(val)))
 			frame.ip += 8
 		case bytecode.F64ADD:
@@ -70,8 +72,17 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(types.Float64)
 			val1, _ := i.pop().(types.Float64)
 			i.push(types.NewFloat64(math.Mod(val1.Value, val2.Value)))
+		case bytecode.CLD:
+			offset := int(binary.BigEndian.Uint32(insns[frame.ip+1:]))
+			size := int(binary.BigEndian.Uint32(insns[frame.ip+5:]))
+			i.push(types.NewString(string(consts[offset : offset+size])))
+			frame.ip += 8
 		default:
-			return fmt.Errorf("unknown opcode: %v", opcode)
+			typ := bytecode.TypeOf(opcode)
+			if typ == nil {
+				return fmt.Errorf("unknown opcode: %v", opcode)
+			}
+			return fmt.Errorf("unknown opcode: %v", typ.Mnemonic)
 		}
 
 		frame = i.frame()
@@ -83,11 +94,6 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 
 func (i *Interpreter) frame() *Frame {
 	return i.frames[i.fp-1]
-}
-
-func (i *Interpreter) ret() *Frame {
-	i.fp--
-	return i.frames[i.fp]
 }
 
 func (i *Interpreter) call(f *Frame) {

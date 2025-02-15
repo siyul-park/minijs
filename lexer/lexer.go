@@ -1,8 +1,9 @@
 package lexer
 
 import (
-	"github.com/siyul-park/minijs/token"
 	"unicode"
+
+	"github.com/siyul-park/minijs/token"
 )
 
 type Lexer struct {

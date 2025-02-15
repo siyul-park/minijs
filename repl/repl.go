@@ -3,11 +3,12 @@ package repl
 import (
 	"bufio"
 	"fmt"
+	"io"
+
 	"github.com/siyul-park/minijs/compiler"
 	"github.com/siyul-park/minijs/interpreter"
 	"github.com/siyul-park/minijs/lexer"
 	"github.com/siyul-park/minijs/parser"
-	"io"
 )
 
 type REPL struct {
