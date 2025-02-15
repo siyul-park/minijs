@@ -48,7 +48,7 @@ func TestParser_Parse(t *testing.T) {
 			`"hello"`,
 			ast.NewProgram(
 				ast.NewStatement(
-					ast.NewStringLiteral(token.NewToken(token.STRING, "hello"), "hello"),
+					ast.NewStringLiteral(token.NewToken(token.KindString, "hello"), "hello"),
 				),
 			),
 		},

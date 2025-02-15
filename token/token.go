@@ -13,7 +13,7 @@ const (
 
 	IDENTIFIER Type = "IDENTIFIER"
 	NUMBER     Type = "NUMBER"
-	STRING     Type = "STRING"
+	KindString Type = "KindString"
 	BOOLEAN    Type = "BOOLEAN"
 	NULL       Type = "NULL"
 

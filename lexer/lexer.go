@@ -149,7 +149,7 @@ func (l *Lexer) string(delim rune) token.Token {
 		}
 		literal = append(literal, l.pop())
 	}
-	return token.NewToken(token.STRING, string(literal))
+	return token.NewToken(token.KindString, string(literal))
 }
 
 func (l *Lexer) trim() {

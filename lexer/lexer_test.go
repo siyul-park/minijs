@@ -98,7 +98,7 @@ func TestLexer_Next(t *testing.T) {
 		},
 		{
 			source: `"abcdefg"`,
-			tokens: []token.Token{token.NewToken(token.STRING, `abcdefg`), token.NewToken(token.EOF, "")},
+			tokens: []token.Token{token.NewToken(token.KindString, `abcdefg`), token.NewToken(token.EOF, "")},
 		},
 		{
 			source: `true`,

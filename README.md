@@ -1,9 +1,9 @@
 # minijs
 
-[![go report][go_report_img]][go_report_url]  
-[![go doc][go_doc_img]][go_doc_url]  
-[![release][repo_releases_img]][repo_releases_url]  
-[![ci][repo_ci_img]][repo_ci_url]  
+[![go report][go_report_img]][go_report_url]
+[![go doc][go_doc_img]][go_doc_url]
+[![release][repo_releases_img]][repo_releases_url]
+[![ci][repo_ci_img]][repo_ci_url]
 [![code coverage][go_code_coverage_img]][go_code_coverage_url]
 
 **minijs** is a JavaScript bytecode virtual machine implemented in Go. It compiles JavaScript code into bytecode for execution, optimizing performance while ensuring **high compatibility with Go**, making it easy to embed in various Go-based applications.

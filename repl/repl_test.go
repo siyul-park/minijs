@@ -16,5 +16,5 @@ func TestREPL_Start(t *testing.T) {
 
 	err := r.Start(input, &output)
 	assert.NoError(t, err)
-	assert.Equal(t, "hello, world\n", output.String())
+	assert.Equal(t, "\"hello, world\"\n", output.String())
 }

@@ -52,7 +52,7 @@ func New(lexer *lexer.Lexer) *Parser {
 
 	p.prefix = map[token.Type]func() (ast.Node, error){
 		token.NUMBER:     p.numberLiteral,
-		token.STRING:     p.stringLiteral,
+		token.KindString: p.stringLiteral,
 		token.BOOLEAN:    p.boolLiteral,
 		token.IDENTIFIER: p.identifierLiteral,
 		token.PLUS:       p.prefixExpression,
