@@ -73,10 +73,10 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(Int32)
 			val1, _ := i.pop().(Int32)
 			i.push(val1 % val2)
-		case bytecode.I322F64:
+		case bytecode.I32TOF64:
 			val, _ := i.pop().(Int32)
 			i.push(Float64(val))
-		case bytecode.I322C:
+		case bytecode.I3TO2C:
 			val, _ := i.pop().(Int32)
 			i.push(String(strconv.Itoa(int(val))))
 		case bytecode.F64LOAD:
@@ -106,7 +106,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.F64I32:
 			val, _ := i.pop().(Float64)
 			i.push(Int32(val))
-		case bytecode.F642C:
+		case bytecode.F64TOC:
 			val, _ := i.pop().(Float64)
 			i.push(String(strconv.FormatFloat(float64(val), 'f', -1, 64)))
 		case bytecode.CLOAD:
@@ -118,14 +118,14 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(String)
 			val1, _ := i.pop().(String)
 			i.push(val1 + val2)
-		case bytecode.C2F64:
+		case bytecode.CTOF64:
 			val, _ := i.pop().(String)
 			f, err := strconv.ParseFloat(string(val), 64)
 			if err != nil {
 				f = math.NaN()
 			}
 			i.push(Float64(f))
-		case bytecode.C2I32:
+		case bytecode.CTOI32:
 			val, _ := i.pop().(String)
 			n, err := strconv.Atoi(string(val))
 			if err != nil {

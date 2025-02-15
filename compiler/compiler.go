@@ -17,19 +17,19 @@ type Compiler struct {
 
 var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
 	interpreter.KindInt32: {
-		interpreter.KindInt32:   []bytecode.Instruction{},
-		interpreter.KindFloat64: []bytecode.Instruction{bytecode.New(bytecode.I322F64)},
-		interpreter.KindString:  []bytecode.Instruction{bytecode.New(bytecode.I322C)},
+		interpreter.KindInt32:   {},
+		interpreter.KindFloat64: {bytecode.New(bytecode.I32TOF64)},
+		interpreter.KindString:  {bytecode.New(bytecode.I3TO2C)},
 	},
 	interpreter.KindFloat64: {
-		interpreter.KindInt32:   []bytecode.Instruction{bytecode.New(bytecode.F64I32)},
-		interpreter.KindFloat64: []bytecode.Instruction{},
-		interpreter.KindString:  []bytecode.Instruction{bytecode.New(bytecode.F642C)},
+		interpreter.KindInt32:   {bytecode.New(bytecode.F64I32)},
+		interpreter.KindFloat64: {},
+		interpreter.KindString:  {bytecode.New(bytecode.F64TOC)},
 	},
 	interpreter.KindString: {
-		interpreter.KindInt32:   []bytecode.Instruction{bytecode.New(bytecode.C2I32)},
-		interpreter.KindFloat64: []bytecode.Instruction{bytecode.New(bytecode.C2F64)},
-		interpreter.KindString:  []bytecode.Instruction{},
+		interpreter.KindInt32:   {bytecode.New(bytecode.CTOI32)},
+		interpreter.KindFloat64: {bytecode.New(bytecode.CTOF64)},
+		interpreter.KindString:  {},
 	},
 }
 
@@ -67,8 +67,8 @@ func (c *Compiler) compile(node ast.Node) (interpreter.Kind, error) {
 }
 
 func (c *Compiler) program(node *ast.Program) (interpreter.Kind, error) {
-	for _, n := range node.Statements {
-		if _, err := c.statement(n); err != nil {
+	for _, stmt := range node.Statements {
+		if _, err := c.statement(stmt); err != nil {
 			return interpreter.KindInvalid, err
 		}
 	}
@@ -154,7 +154,6 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 	if err != nil {
 		return interpreter.KindInvalid, err
 	}
-
 	if left != right {
 		if left, err = c.cast(left, right); err != nil {
 			return interpreter.KindInvalid, err
@@ -165,7 +164,6 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 	if err != nil {
 		return interpreter.KindInvalid, err
 	}
-
 	if right != left {
 		if right, err = c.cast(right, left); err != nil {
 			return interpreter.KindInvalid, err

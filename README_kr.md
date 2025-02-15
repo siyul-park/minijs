@@ -56,23 +56,23 @@ minijs -print-bytecode script.js
 
 ```text
 section .text:
- global _main
+        global _main
 
 _main:
- 0000   cload 0x0 0x0
- 0009   cload 0x2 0x2
- 0018   cadd
- 0019   cload 0x2 0x2
- 0028   c2f64
- 0029   f642c
- 0030   cadd
- 0031   cload 0x2 0x2
- 0040   cadd
- 0041   pop
+        cload 0x00000000 0x00000001
+        cload 0x00000002 0x00000001
+        cadd
+        cload 0x00000002 0x00000001
+        ctof64
+        f64toc
+        cadd
+        cload 0x00000002 0x00000001
+        cadd
+        pop
 
 .section .data:
- 0000   b
- 0002   a
+        b
+        a
 ```
 
 <!-- Go -->

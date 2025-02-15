@@ -3,6 +3,7 @@ package bytecode
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
 )
 
 type Instruction []byte
@@ -24,8 +25,8 @@ const (
 	I32SUB
 	I32DIV
 	I32MOD
-	I322F64
-	I322C
+	I32TOF64
+	I3TO2C
 
 	F64LOAD
 	F64ADD
@@ -34,26 +35,26 @@ const (
 	F64DIV
 	F64MOD
 	F64I32
-	F642C
+	F64TOC
 
 	CLOAD
 	CADD
-	C2I32
-	C2F64
+	CTOI32
+	CTOF64
 )
 
 var types = map[Opcode]*Type{
 	NOP: {Mnemonic: "nop"},
 	POP: {Mnemonic: "pop"},
 
-	I32LOAD: {Mnemonic: "i32load", Widths: []int{4}},
-	I32MUL:  {Mnemonic: "i32mul"},
-	I32ADD:  {Mnemonic: "i32add"},
-	I32SUB:  {Mnemonic: "i32sub"},
-	I32DIV:  {Mnemonic: "i32div"},
-	I32MOD:  {Mnemonic: "i32mod"},
-	I322F64: {Mnemonic: "i322f64"},
-	I322C:   {Mnemonic: "i322c"},
+	I32LOAD:  {Mnemonic: "i32load", Widths: []int{4}},
+	I32MUL:   {Mnemonic: "i32mul"},
+	I32ADD:   {Mnemonic: "i32add"},
+	I32SUB:   {Mnemonic: "i32sub"},
+	I32DIV:   {Mnemonic: "i32div"},
+	I32MOD:   {Mnemonic: "i32mod"},
+	I32TOF64: {Mnemonic: "i32tof64"},
+	I3TO2C:   {Mnemonic: "i32toc"},
 
 	F64LOAD: {Mnemonic: "f64load", Widths: []int{8}},
 	F64ADD:  {Mnemonic: "f64add"},
@@ -62,12 +63,12 @@ var types = map[Opcode]*Type{
 	F64DIV:  {Mnemonic: "f64div"},
 	F64MOD:  {Mnemonic: "f64mod"},
 	F64I32:  {Mnemonic: "f64i32"},
-	F642C:   {Mnemonic: "f642c"},
+	F64TOC:  {Mnemonic: "f64toc"},
 
-	CLOAD: {Mnemonic: "cload", Widths: []int{4, 4}},
-	CADD:  {Mnemonic: "cadd"},
-	C2I32: {Mnemonic: "c2i32"},
-	C2F64: {Mnemonic: "c2f64"},
+	CLOAD:  {Mnemonic: "cload", Widths: []int{4, 4}},
+	CADD:   {Mnemonic: "cadd"},
+	CTOI32: {Mnemonic: "ctoi32"},
+	CTOF64: {Mnemonic: "ctof64"},
 }
 
 func TypeOf(op Opcode) *Type {
@@ -135,13 +136,13 @@ func (i Instruction) Operands() []uint64 {
 	for j, width := range typ.Widths {
 		switch width {
 		case 1:
-			operands[j] = uint64(i[1])
+			operands[j] = uint64(i[1+offset])
 		case 2:
-			operands[j] = uint64(binary.BigEndian.Uint16(i[1:]))
+			operands[j] = uint64(binary.BigEndian.Uint16(i[1+offset:]))
 		case 4:
-			operands[j] = uint64(binary.BigEndian.Uint32(i[1:]))
+			operands[j] = uint64(binary.BigEndian.Uint32(i[1+offset:]))
 		case 8:
-			operands[j] = binary.BigEndian.Uint64(i[1:])
+			operands[j] = binary.BigEndian.Uint64(i[1+offset:])
 		default:
 			continue
 		}
@@ -152,18 +153,16 @@ func (i Instruction) Operands() []uint64 {
 
 func (i Instruction) String() string {
 	typ := i.Type()
-	operands := i.Operands()
-	switch len(operands) {
-	case 0:
+	if len(typ.Widths) == 0 {
 		return typ.Mnemonic
-	case 1:
-		return fmt.Sprintf("%s 0x%X", typ.Mnemonic, operands[0])
-	case 2:
-		return fmt.Sprintf("%s 0x%X 0x%X", typ.Mnemonic, operands[0], operands[1])
-	case 4:
-		return fmt.Sprintf("%s 0x%X 0x%X 0x%X 0x%X", typ.Mnemonic, operands[0], operands[1], operands[2], operands[3])
-	case 8:
-		return fmt.Sprintf("%s 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X 0x%X", typ.Mnemonic, operands[0], operands[1], operands[2], operands[3], operands[4], operands[5], operands[6], operands[7])
 	}
-	return fmt.Sprintf("ERROR: unhandled operand width for %s: %d", typ.Mnemonic, typ.Width())
+
+	operands := i.Operands()
+	widths := typ.Widths
+
+	var ops []string
+	for idx, operand := range operands {
+		ops = append(ops, fmt.Sprintf("0x%0*X", widths[idx]*2, operand))
+	}
+	return fmt.Sprintf("%s %s", typ.Mnemonic, strings.Join(ops, " "))
 }

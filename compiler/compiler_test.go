@@ -62,7 +62,7 @@ func TestCompiler_Compile(t *testing.T) {
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.I32TOF64),
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
 				bytecode.New(bytecode.F64ADD),
 			},
@@ -75,7 +75,7 @@ func TestCompiler_Compile(t *testing.T) {
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I322C),
+				bytecode.New(bytecode.I3TO2C),
 				bytecode.New(bytecode.CLOAD, 0, 1),
 				bytecode.New(bytecode.CADD),
 			},
@@ -113,9 +113,9 @@ func TestCompiler_Compile(t *testing.T) {
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.I32TOF64),
 				bytecode.New(bytecode.I32LOAD, 2),
-				bytecode.New(bytecode.I322F64),
+				bytecode.New(bytecode.I32TOF64),
 				bytecode.New(bytecode.F64DIV),
 			},
 		},
@@ -166,7 +166,7 @@ func TestCompiler_Compile(t *testing.T) {
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
-				bytecode.New(bytecode.F642C),
+				bytecode.New(bytecode.F64TOC),
 				bytecode.New(bytecode.CLOAD, 0, 1),
 				bytecode.New(bytecode.CADD),
 			},

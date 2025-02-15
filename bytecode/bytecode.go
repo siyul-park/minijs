@@ -47,7 +47,7 @@ func (b *Bytecode) String() string {
 	var out strings.Builder
 
 	out.WriteString("section .text:\n")
-	out.WriteString(" global _main\n\n")
+	out.WriteString("\tglobal _main\n\n")
 	out.WriteString("_main:\n")
 
 	offset := 0
@@ -56,13 +56,13 @@ func (b *Bytecode) String() string {
 		if read == 0 {
 			break
 		}
-		fmt.Fprintf(&out, " %04d\t%s\n", offset, bytecode.String())
+		fmt.Fprintf(&out, "\t%s\n", bytecode.String())
 		offset += read
 	}
 
 	out.WriteString("\n.section .data:\n")
 	for i := 0; i < len(b.Constants); i++ {
-		fmt.Fprintf(&out, " %04d\t", i)
+		fmt.Fprint(&out, " \t")
 		for ; b.Constants[i] != 0 && i < len(b.Constants); i++ {
 			if unicode.IsPrint(rune(b.Constants[i])) {
 				fmt.Fprintf(&out, "%c", rune(b.Constants[i]))
