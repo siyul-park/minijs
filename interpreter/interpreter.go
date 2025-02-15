@@ -102,6 +102,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 
 		frame = i.frame()
 		insns = frame.Instructions()
+		consts = frame.Constants()
 	}
 
 	return nil
