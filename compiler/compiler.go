@@ -11,8 +11,8 @@ import (
 )
 
 type Compiler struct {
-	code      bytecode.Bytecode
-	constants map[string]int
+	code     bytecode.Bytecode
+	literals map[string]int
 }
 
 var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
@@ -26,11 +26,11 @@ var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
 		interpreter.KindBool:    {bytecode.New(bytecode.I32TOB)},
 		interpreter.KindInt32:   {},
 		interpreter.KindFloat64: {bytecode.New(bytecode.I32TOF64)},
-		interpreter.KindString:  {bytecode.New(bytecode.I3TO2C)},
+		interpreter.KindString:  {bytecode.New(bytecode.I32TOC)},
 	},
 	interpreter.KindFloat64: {
 		interpreter.KindBool:    {},
-		interpreter.KindInt32:   {bytecode.New(bytecode.F64I32)},
+		interpreter.KindInt32:   {bytecode.New(bytecode.F64TOI32)},
 		interpreter.KindFloat64: {},
 		interpreter.KindString:  {bytecode.New(bytecode.F64TOC)},
 	},
@@ -44,7 +44,7 @@ var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
 
 func New() *Compiler {
 	return &Compiler{
-		constants: make(map[string]int),
+		literals: make(map[string]int),
 	}
 }
 
@@ -52,7 +52,7 @@ func (c *Compiler) Compile(node ast.Node) (bytecode.Bytecode, error) {
 	_, err := c.compile(node)
 	code := c.code
 	c.code = bytecode.Bytecode{}
-	c.constants = make(map[string]int)
+	c.literals = make(map[string]int)
 	return code, err
 }
 
@@ -307,10 +307,10 @@ func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) int {
 }
 
 func (c *Compiler) store(val string) (int, int) {
-	offset, ok := c.constants[val]
+	offset, ok := c.literals[val]
 	if !ok {
 		offset = c.code.Store([]byte(val + "\x00"))
-		c.constants[val] = offset
+		c.literals[val] = offset
 	}
 	return offset, len([]byte(val))
 }

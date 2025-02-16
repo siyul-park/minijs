@@ -31,7 +31,7 @@ const (
 	I32MOD
 	I32TOB
 	I32TOF64
-	I3TO2C
+	I32TOC
 
 	F64LOAD
 	F64ADD
@@ -39,7 +39,7 @@ const (
 	F64MUL
 	F64DIV
 	F64MOD
-	F64I32
+	F64TOI32
 	F64TOC
 
 	CLOAD
@@ -64,16 +64,16 @@ var types = map[Opcode]*Type{
 	I32MOD:   {Mnemonic: "i32mod"},
 	I32TOB:   {Mnemonic: "i32tob"},
 	I32TOF64: {Mnemonic: "i32tof64"},
-	I3TO2C:   {Mnemonic: "i32toc"},
+	I32TOC:   {Mnemonic: "i32toc"},
 
-	F64LOAD: {Mnemonic: "f64load", Widths: []int{8}},
-	F64ADD:  {Mnemonic: "f64add"},
-	F64SUB:  {Mnemonic: "f64sub"},
-	F64MUL:  {Mnemonic: "f64mul"},
-	F64DIV:  {Mnemonic: "f64div"},
-	F64MOD:  {Mnemonic: "f64mod"},
-	F64I32:  {Mnemonic: "f64i32"},
-	F64TOC:  {Mnemonic: "f64toc"},
+	F64LOAD:  {Mnemonic: "f64load", Widths: []int{8}},
+	F64ADD:   {Mnemonic: "f64add"},
+	F64SUB:   {Mnemonic: "f64sub"},
+	F64MUL:   {Mnemonic: "f64mul"},
+	F64DIV:   {Mnemonic: "f64div"},
+	F64MOD:   {Mnemonic: "f64mod"},
+	F64TOI32: {Mnemonic: "f64toi32"},
+	F64TOC:   {Mnemonic: "f64toc"},
 
 	CLOAD:  {Mnemonic: "cload", Widths: []int{4, 4}},
 	CADD:   {Mnemonic: "cadd"},

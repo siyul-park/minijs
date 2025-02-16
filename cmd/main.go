@@ -59,6 +59,12 @@ func runFile(filePath string, printBytecode bool) {
 		log.Fatal("Error compiling program: ", err)
 	}
 
+	o := compiler.NewOptimizer()
+	code, err = o.Optimize(code)
+	if err != nil {
+		log.Fatal("Error optimize program: ", err)
+	}
+
 	if printBytecode {
 		fmt.Println(code.String())
 	} else {

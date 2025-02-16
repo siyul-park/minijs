@@ -8,6 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestInterpreter_Pop(t *testing.T) {
+	f := Float64(math.NaN())
+	assert.True(t, math.IsNaN(float64(f)), "Expected f to be NaN")
+}
+
 func TestInterpreter_Execute(t *testing.T) {
 	tests := []struct {
 		instructions []bytecode.Instruction
@@ -115,7 +120,7 @@ func TestInterpreter_Execute(t *testing.T) {
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 42),
-				bytecode.New(bytecode.I3TO2C),
+				bytecode.New(bytecode.I32TOC),
 			},
 			stack: []Value{String("42")},
 		},
@@ -168,7 +173,7 @@ func TestInterpreter_Execute(t *testing.T) {
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(3.7)),
-				bytecode.New(bytecode.F64I32),
+				bytecode.New(bytecode.F64TOI32),
 			},
 			stack: []Value{Int32(3)},
 		},
@@ -226,8 +231,8 @@ func TestInterpreter_Execute(t *testing.T) {
 			err := interpreter.Execute(code)
 			assert.NoError(t, err)
 
-			for i, val := range tt.stack {
-				assert.Equal(t, val, interpreter.Top(i))
+			for _, val := range tt.stack {
+				assert.Equal(t, val, interpreter.Pop())
 			}
 		})
 	}
@@ -335,7 +340,7 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 42),
-				bytecode.New(bytecode.I3TO2C),
+				bytecode.New(bytecode.I32TOC),
 				bytecode.New(bytecode.POP),
 			},
 		},
@@ -388,7 +393,7 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(3.7)),
-				bytecode.New(bytecode.F64I32),
+				bytecode.New(bytecode.F64TOI32),
 				bytecode.New(bytecode.POP),
 			},
 		},

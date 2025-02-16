@@ -38,23 +38,16 @@ minijs
 "baNaNa"
 ```
 
-### 파일 실행
+#### 바이트코드 출력
 
-자바스크립트 파일을 실행하려면 다음 명령어를 사용합니다:
-
-```bash
-minijs script.js
-```
-
-### 바이트코드 출력
-
-바이트코드를 출력하려면 `-print-bytecode` 플래그를 사용합니다.
+바이트코드를 함께 출력하려면 `-print-bytecode` 플래그를 사용합니다.
 
 ```bash
-minijs -print-bytecode script.js
+minijs --print-bytecode
 ```
 
-```text
+```bash
+> 'b'+'a'+ +'a'+'a'
 section .text:
         global _main
 
@@ -68,11 +61,48 @@ _main:
         cadd
         cload 0x00000002 0x00000001
         cadd
+
+.section .data:
+        b
+        a
+
+"baNaNa"
+```
+
+### 파일 실행
+
+파일을 실행하면 최적화 과정이 적용되어 바이트 코드가 더욱 효율적으로 변환됩니다. 자바스크립트 파일을 실행하려면 다음 명령어를 사용합니다:
+
+```bash
+minijs bababa.js
+```
+
+#### 바이트코드 출력
+
+바이트코드를 출력하려면 `-print-bytecode` 플래그를 사용합니다.
+
+```bash
+minijs -print-bytecode bababa.js
+```
+
+```text
+section .text:
+        global _main
+
+_main:
+        cload 0x00000000 0x00000001
+        cload 0x00000002 0x00000001
+        cadd
+        cload 0x00000004 0x00000003
+        cadd
+        cload 0x00000002 0x00000001
+        cadd
         pop
 
 .section .data:
         b
         a
+        NaN
 ```
 
 <!-- Go -->

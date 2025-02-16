@@ -37,24 +37,8 @@ type value struct {
 	value Value
 }
 
-func (i *Interpreter) Top(offset int) Value {
-	index := i.sp - offset - 1
-	if index > len(i.stack) {
-		return nil
-	}
-
-	ref := i.stack[index]
-	switch ref.kind {
-	case KindBool:
-		return Bool(ref.pointer)
-	case KindInt32:
-		return Int32(ref.pointer)
-	case KindFloat64:
-		return Float64(math.Float64frombits(ref.pointer))
-	default:
-		v := i.heap[ref.pointer]
-		return v.value
-	}
+func (i *Interpreter) Pop() Value {
+	return i.pop()
 }
 
 func (i *Interpreter) Execute(code bytecode.Bytecode) error {
@@ -118,7 +102,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.I32TOF64:
 			val, _ := i.pop().(Int32)
 			i.push(Float64(val))
-		case bytecode.I3TO2C:
+		case bytecode.I32TOC:
 			val, _ := i.pop().(Int32)
 			i.push(String(val.String()))
 		case bytecode.F64LOAD:
@@ -145,7 +129,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(Float64)
 			val1, _ := i.pop().(Float64)
 			i.push(Float64(math.Mod(float64(val1), float64(val2))))
-		case bytecode.F64I32:
+		case bytecode.F64TOI32:
 			val, _ := i.pop().(Float64)
 			i.push(Int32(val))
 		case bytecode.F64TOC:

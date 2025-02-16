@@ -6,73 +6,103 @@
 [![ci][repo_ci_img]][repo_ci_url]
 [![code coverage][go_code_coverage_img]][go_code_coverage_url]
 
-**minijs** is a JavaScript bytecode virtual machine implemented in Go. It compiles JavaScript code into bytecode for execution, optimizing performance while ensuring **high compatibility with Go**, making it easy to embed in various Go-based applications.
+**minijs** is a JavaScript bytecode virtual machine implemented in Go. It converts JavaScript code into bytecode for execution and, with **high compatibility with Go**, can be seamlessly embedded into various Go-based applications.
 
-## Key Features
+## **Key Features**
 
-- **Bytecode Execution**: Transforms JavaScript code into bytecode and executes it in a virtual machine, optimizing performance.
-- **High Compatibility with Go**: Developed in Go, allowing seamless integration with Go-based applications.
+- **Bytecode Execution**: Optimizes performance by converting JavaScript code into bytecode and executing it in a virtual machine.
+- **High Compatibility with Go**: Developed in Go, making it easy to integrate into Go-based applications.
 
-## Installation
+## **Installation**
 
-**minijs** runs in a Go environment. Use the following commands to clone and build the project:
+**minijs** runs in a Go environment. You can clone the repository and build it using the following commands:
 
 ```bash
-git clone https://github.com/siyul-park/minijs.git
-cd minijs
-make build
+git clone https://github.com/siyul-park/minijs.git  
+cd minijs  
+make build  
 ```
 
-## Usage
+## **Usage**
 
-### Running REPL
+### **Running the REPL**
 
-You can execute JavaScript code interactively using the REPL (Read-Eval-Print Loop):
+You can execute JavaScript code interactively in the REPL (Read-Eval-Print Loop).
 
 ```bash
-minijs
+minijs  
 ```
 
 ```bash
-> 'b'+'a'+ +'a'+'a'
-"baNaNa"
+> 'b'+'a'+ +'a'+'a'  
+"baNaNa"  
 ```
 
-### Executing a Script File
+### **Bytecode Output**
 
-To run a JavaScript script from a file, use:
+To print the corresponding bytecode, use the `-print-bytecode` flag.
 
 ```bash
-minijs script.js
+minijs --print-bytecode  
 ```
 
-### Printing Bytecode
+```bash
+> 'b'+'a'+ +'a'+'a'  
+section .text:  
+        global _main  
 
-To output the compiled bytecode, use the `-print-bytecode` flag:
+_main:  
+        cload 0x00000000 0x00000001  
+        cload 0x00000002 0x00000001  
+        cadd  
+        cload 0x00000002 0x00000001  
+        ctof64  
+        f64toc  
+        cadd  
+        cload 0x00000002 0x00000001  
+        cadd  
+
+.section .data:  
+        b  
+        a  
+
+"baNaNa"  
+```
+
+### **Executing a JavaScript File**
+
+When executing a file, **minijs** applies optimization processes to make the bytecode more efficient. To run a JavaScript file, use the following command:
 
 ```bash
-minijs -print-bytecode script.js
+minijs bababa.js  
+```
+
+### **Printing Bytecode from a File**
+
+To print the bytecode while executing a file, use the `-print-bytecode` flag.
+
+```bash
+minijs -print-bytecode bababa.js  
 ```
 
 ```text
-section .text:
-        global _main
+section .text:  
+        global _main  
 
-_main:
-        cload 0x00000000 0x00000001
-        cload 0x00000002 0x00000001
-        cadd
-        cload 0x00000002 0x00000001
-        ctof64
-        f64toc
-        cadd
-        cload 0x00000002 0x00000001
-        cadd
-        pop
+_main:  
+        cload 0x00000000 0x00000001  
+        cload 0x00000002 0x00000001  
+        cadd  
+        cload 0x00000004 0x00000003  
+        cadd  
+        cload 0x00000002 0x00000001  
+        cadd  
+        pop  
 
-.section .data:
-        b
-        a
+.section .data:  
+        b  
+        a  
+        NaN  
 ```
 
 <!-- Go -->

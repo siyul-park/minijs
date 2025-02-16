@@ -14,7 +14,7 @@ func TestCompiler_Compile(t *testing.T) {
 	tests := []struct {
 		node         ast.Node
 		instructions []bytecode.Instruction
-		constants    []string
+		literals     []string
 	}{
 		{
 			node: ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
@@ -75,11 +75,11 @@ func TestCompiler_Compile(t *testing.T) {
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I3TO2C),
+				bytecode.New(bytecode.I32TOC),
 				bytecode.New(bytecode.CLOAD, 0, 1),
 				bytecode.New(bytecode.CADD),
 			},
-			constants: []string{"2"},
+			literals: []string{"2"},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -170,7 +170,7 @@ func TestCompiler_Compile(t *testing.T) {
 				bytecode.New(bytecode.CLOAD, 0, 1),
 				bytecode.New(bytecode.CADD),
 			},
-			constants: []string{"2"},
+			literals: []string{"2"},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -226,7 +226,7 @@ func TestCompiler_Compile(t *testing.T) {
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.CLOAD, 0, 3),
 			},
-			constants: []string{"abc"},
+			literals: []string{"abc"},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -239,7 +239,7 @@ func TestCompiler_Compile(t *testing.T) {
 				bytecode.New(bytecode.CLOAD, 4, 3),
 				bytecode.New(bytecode.CADD),
 			},
-			constants: []string{"foo", "bar"},
+			literals: []string{"foo", "bar"},
 		},
 		{
 			node: ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
@@ -285,12 +285,13 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 	}
 
+	compiler := New()
+
 	for _, tt := range tests {
 		t.Run(tt.node.String(), func(t *testing.T) {
-			compiler := New()
 			code := bytecode.Bytecode{}
 			code.Add(tt.instructions...)
-			for _, c := range tt.constants {
+			for _, c := range tt.literals {
 				code.Store([]byte(c + "\x00"))
 			}
 
