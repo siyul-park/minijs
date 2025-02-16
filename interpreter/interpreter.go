@@ -12,7 +12,7 @@ import (
 type Interpreter struct {
 	stack  []reference
 	heap   []value
-	free   []uint32
+	free   []uint64
 	frames []*Frame
 	sp     int
 	fp     int
@@ -22,14 +22,14 @@ func New() *Interpreter {
 	return &Interpreter{
 		stack:  make([]reference, 64),
 		heap:   make([]value, 0, 64),
-		free:   make([]uint32, 0, 64),
+		free:   make([]uint64, 0, 64),
 		frames: make([]*Frame, 64),
 	}
 }
 
 type reference struct {
 	kind    Kind
-	pointer uint32
+	pointer uint64
 }
 
 type value struct {
@@ -47,6 +47,8 @@ func (i *Interpreter) Top(offset int) Value {
 	switch ref.kind {
 	case KindInt32:
 		return Int32(ref.pointer)
+	case KindFloat64:
+		return Float64(math.Float64frombits(ref.pointer))
 	default:
 		v := i.heap[ref.pointer]
 		return v.value
@@ -202,7 +204,9 @@ func (i *Interpreter) push(val Value) {
 
 	switch val := val.(type) {
 	case Int32:
-		ref.pointer = uint32(val)
+		ref.pointer = uint64(val)
+	case Float64:
+		ref.pointer = math.Float64bits(float64(val))
 	default:
 		v := value{kind: kind, value: val}
 
@@ -219,7 +223,7 @@ func (i *Interpreter) push(val Value) {
 			index = len(i.heap) - 1
 		}
 
-		ref.pointer = uint32(index)
+		ref.pointer = uint64(index)
 	}
 
 	i.stack[i.sp] = ref
@@ -237,6 +241,8 @@ func (i *Interpreter) pop() Value {
 	switch ref.kind {
 	case KindInt32:
 		return Int32(ref.pointer)
+	case KindFloat64:
+		return Float64(math.Float64frombits(ref.pointer))
 	default:
 		v := i.heap[ref.pointer]
 		i.free = append(i.free, ref.pointer)
