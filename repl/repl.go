@@ -11,14 +11,23 @@ import (
 	"github.com/siyul-park/minijs/parser"
 )
 
-type REPL struct {
-	prompt string
+type Option struct {
+	PrintBytecode bool
 }
 
-func New(prompt string) *REPL {
-	return &REPL{
-		prompt: prompt,
+type REPL struct {
+	prompt        string
+	printBytecode bool
+}
+
+func New(prompt string, opts ...Option) *REPL {
+	repl := &REPL{prompt: prompt}
+
+	for _, opt := range opts {
+		repl.printBytecode = opt.PrintBytecode
 	}
+
+	return repl
 }
 
 func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
@@ -65,6 +74,12 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 				return err
 			}
 			continue
+		}
+
+		if r.printBytecode {
+			if _, err := fmt.Fprintln(writer, code.String()); err != nil {
+				return err
+			}
 		}
 
 		if err := i.Execute(code); err != nil {

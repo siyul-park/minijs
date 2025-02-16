@@ -269,6 +269,20 @@ func TestCompiler_Compile(t *testing.T) {
 				bytecode.New(bytecode.I32MUL),
 			},
 		},
+		{
+			node: ast.NewInfixExpression(
+				token.MINUS,
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1.0),
+				ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOI32),
+				bytecode.New(bytecode.I32TOF64),
+				bytecode.New(bytecode.F64SUB),
+			},
+		},
 	}
 
 	for _, tt := range tests {

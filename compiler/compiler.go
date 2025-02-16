@@ -172,7 +172,6 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 	if right == interpreter.KindBool {
 		right = interpreter.KindInt32
 	}
-
 	if left == interpreter.KindBool {
 		left = interpreter.KindInt32
 	}
@@ -261,34 +260,39 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 }
 
 func (c *Compiler) cast(from, to interpreter.Kind) (interpreter.Kind, error) {
-	queue := []interpreter.Kind{from}
+	queue := []struct {
+		kind  interpreter.Kind
+		insns []bytecode.Instruction
+	}{{from, nil}}
+
 	visited := map[interpreter.Kind]bool{}
+	visited[from] = true
 
 	for len(queue) > 0 {
 		curr := queue[0]
 		queue = queue[1:]
 
-		if insns, ok := casts[curr][to]; ok {
-			for _, insn := range insns {
+		if insns := casts[curr.kind][to]; len(insns) > 0 {
+			for _, insn := range append(curr.insns, insns...) {
 				c.code.Add(insn)
 			}
 			return to, nil
 		}
 
-		if visited[curr] {
-			continue
-		}
-		visited[curr] = true
-
-		for next, insns := range casts[curr] {
-			if !visited[next] {
-				for _, insn := range insns {
-					c.code.Add(insn)
-				}
-				queue = append(queue, next)
+		for next, insns := range casts[curr.kind] {
+			if !visited[next] && len(insns) > 0 {
+				visited[next] = true
+				queue = append(queue, struct {
+					kind  interpreter.Kind
+					insns []bytecode.Instruction
+				}{
+					kind:  next,
+					insns: append(curr.insns, insns...),
+				})
 			}
 		}
 	}
+
 	return interpreter.KindInvalid, fmt.Errorf("no cast path found")
 }
 

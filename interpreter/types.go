@@ -22,6 +22,23 @@ const (
 	KindString
 )
 
+func (k Kind) String() string {
+	switch k {
+	case KindVoid:
+		return "void"
+	case KindBool:
+		return "bool"
+	case KindInt32:
+		return "int32"
+	case KindFloat64:
+		return "float64"
+	case KindString:
+		return "string"
+	default:
+		return "<invalid>"
+	}
+}
+
 type Bool int32
 
 func (b Bool) Kind() Kind {

@@ -20,14 +20,14 @@ func main() {
 
 	args := flag.Args()
 	if len(args) == 0 {
-		runREPL()
+		runREPL(*printBytecode)
 		return
 	}
 	runFile(args[0], *printBytecode)
 }
 
-func runREPL() {
-	r := repl.New("> ")
+func runREPL(printBytecode bool) {
+	r := repl.New("> ", repl.Option{PrintBytecode: printBytecode})
 	if err := r.Start(os.Stdin, os.Stdout); err != nil {
 		log.Fatal("Error starting REPL: ", err)
 	}
