@@ -90,19 +90,11 @@ section .text:
         global _main
 
 _main:
-        cload 0x00000000 0x00000001
-        cload 0x00000002 0x00000001
-        cadd
-        cload 0x00000004 0x00000003
-        cadd
-        cload 0x00000002 0x00000001
-        cadd
+        cload 0x00000000 0x00000006
         pop
 
 .section .data:
-        b
-        a
-        NaN
+        baNaNa
 ```
 
 <!-- Go -->

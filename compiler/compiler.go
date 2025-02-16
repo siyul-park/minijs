@@ -19,7 +19,7 @@ var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
 	interpreter.KindBool: {
 		interpreter.KindBool:    {},
 		interpreter.KindInt32:   {bytecode.New(bytecode.BTOI32)},
-		interpreter.KindFloat64: {},
+		interpreter.KindFloat64: {bytecode.New(bytecode.BTOI32), bytecode.New(bytecode.I32TOF64)},
 		interpreter.KindString:  {bytecode.New(bytecode.BTOC)},
 	},
 	interpreter.KindInt32: {

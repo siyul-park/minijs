@@ -60,16 +60,159 @@ func TestOptimizer_Optimize(t *testing.T) {
 				bytecode.New(bytecode.CLOAD, 0, 1),
 			},
 		},
+
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64TOI32),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64TOC),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 1),
+			},
+		},
+
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CTOI32),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 0),
+			},
+			literals: []string{"foo"},
+		},
 		{
 			commands: []bytecode.Instruction{
 				bytecode.New(bytecode.CLOAD, 0, 3),
 				bytecode.New(bytecode.CTOF64),
-				bytecode.New(bytecode.F64TOC),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(math.NaN())),
 			},
 			literals: []string{"foo"},
-			expected: []bytecode.Instruction{
-				bytecode.New(bytecode.CLOAD, 0, 3),
+		},
+
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32ADD),
 			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 2),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32SUB),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 0),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32MUL),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32DIV),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32MOD),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 0),
+			},
+		},
+
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64ADD),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(2)),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64SUB),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(0)),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64MUL),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64DIV),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.F64MOD),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(0)),
+			},
+		},
+
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CLOAD, 0, 3),
+				bytecode.New(bytecode.CADD),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.CLOAD, 0, 6),
+			},
+			literals: []string{"foo"},
 		},
 	}
 
