@@ -14,12 +14,17 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(NOP), expect: "nop"},
 		{instruction: New(POP), expect: "pop"},
 
+		{instruction: New(BLOAD, 0x01), expect: "bload 0x00000001"},
+		{instruction: New(BTOI32), expect: "btoi32"},
+		{instruction: New(BTOC), expect: "btoc"},
+
 		{instruction: New(I32LOAD, 0x01), expect: "i32load 0x00000001"},
 		{instruction: New(I32MUL), expect: "i32mul"},
 		{instruction: New(I32ADD), expect: "i32add"},
 		{instruction: New(I32SUB), expect: "i32sub"},
 		{instruction: New(I32DIV), expect: "i32div"},
 		{instruction: New(I32MOD), expect: "i32mod"},
+		{instruction: New(I32TOB), expect: "i32tob"},
 		{instruction: New(I32TOF64), expect: "i32tof64"},
 		{instruction: New(I3TO2C), expect: "i32toc"},
 

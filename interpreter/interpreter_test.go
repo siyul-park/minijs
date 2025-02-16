@@ -1,10 +1,11 @@
 package interpreter
 
 import (
-	"github.com/siyul-park/minijs/bytecode"
-	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
+
+	"github.com/siyul-park/minijs/bytecode"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInterpreter_Execute(t *testing.T) {
@@ -22,6 +23,26 @@ func TestInterpreter_Execute(t *testing.T) {
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.POP),
 			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+			},
+			stack: []Value{Bool(1)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOI32),
+			},
+			stack: []Value{Int32(1)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOC),
+			},
+			stack: []Value{String("true")},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -76,6 +97,13 @@ func TestInterpreter_Execute(t *testing.T) {
 				bytecode.New(bytecode.I32DIV),
 			},
 			stack: []Value{Int32(5)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32TOB),
+			},
+			stack: []Value{Bool(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -222,6 +250,23 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		},
 		{
 			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOI32),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOC),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
 				bytecode.New(bytecode.POP),
 			},
@@ -272,6 +317,12 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 				bytecode.New(bytecode.I32LOAD, 1),
 				bytecode.New(bytecode.I32DIV),
 				bytecode.New(bytecode.POP),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.I32TOB),
 			},
 		},
 		{

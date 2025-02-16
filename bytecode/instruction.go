@@ -19,12 +19,17 @@ const (
 	NOP Opcode = iota
 	POP
 
+	BLOAD
+	BTOI32
+	BTOC
+
 	I32LOAD
 	I32MUL
 	I32ADD
 	I32SUB
 	I32DIV
 	I32MOD
+	I32TOB
 	I32TOF64
 	I3TO2C
 
@@ -47,12 +52,17 @@ var types = map[Opcode]*Type{
 	NOP: {Mnemonic: "nop"},
 	POP: {Mnemonic: "pop"},
 
+	BLOAD:  {Mnemonic: "bload", Widths: []int{4}},
+	BTOI32: {Mnemonic: "btoi32"},
+	BTOC:   {Mnemonic: "btoc"},
+
 	I32LOAD:  {Mnemonic: "i32load", Widths: []int{4}},
 	I32MUL:   {Mnemonic: "i32mul"},
 	I32ADD:   {Mnemonic: "i32add"},
 	I32SUB:   {Mnemonic: "i32sub"},
 	I32DIV:   {Mnemonic: "i32div"},
 	I32MOD:   {Mnemonic: "i32mod"},
+	I32TOB:   {Mnemonic: "i32tob"},
 	I32TOF64: {Mnemonic: "i32tof64"},
 	I3TO2C:   {Mnemonic: "i32toc"},
 

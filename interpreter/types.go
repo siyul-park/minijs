@@ -16,10 +16,25 @@ type Kind byte
 const (
 	KindInvalid Kind = iota
 	KindVoid
+	KindBool
 	KindInt32
 	KindFloat64
 	KindString
 )
+
+type Bool int32
+
+func (b Bool) Kind() Kind {
+	return KindBool
+}
+
+func (b Bool) Interface() any {
+	return b > 0
+}
+
+func (b Bool) String() string {
+	return strconv.FormatBool(b > 0)
+}
 
 type Int32 int32
 

@@ -6,6 +6,11 @@ import (
 	"github.com/siyul-park/minijs/token"
 )
 
+type BoolLiteral struct {
+	Token token.Token
+	Value bool
+}
+
 type NumberLiteral struct {
 	Token token.Token
 	Value float64
@@ -16,14 +21,13 @@ type StringLiteral struct {
 	Value string
 }
 
-type BoolLiteral struct {
-	Token token.Token
-	Value bool
-}
-
 type IdentifierLiteral struct {
 	Token token.Token
 	Value string
+}
+
+func NewBoolLiteral(tok token.Token, value bool) *BoolLiteral {
+	return &BoolLiteral{Token: tok, Value: value}
 }
 
 func NewNumberLiteral(tok token.Token, value float64) *NumberLiteral {
@@ -34,12 +38,12 @@ func NewStringLiteral(tok token.Token, value string) *StringLiteral {
 	return &StringLiteral{Token: tok, Value: value}
 }
 
-func NewBoolLiteral(tok token.Token, value bool) *BoolLiteral {
-	return &BoolLiteral{Token: tok, Value: value}
-}
-
 func NewIdentifierLiteral(tok token.Token, value string) *IdentifierLiteral {
 	return &IdentifierLiteral{Token: tok, Value: value}
+}
+
+func (n *BoolLiteral) String() string {
+	return n.Token.Literal
 }
 
 func (n *NumberLiteral) IsInteger() bool {
@@ -54,10 +58,6 @@ func (n *NumberLiteral) String() string {
 }
 
 func (n *StringLiteral) String() string {
-	return n.Token.Literal
-}
-
-func (n *BoolLiteral) String() string {
 	return n.Token.Literal
 }
 

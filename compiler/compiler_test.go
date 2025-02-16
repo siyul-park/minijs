@@ -241,6 +241,34 @@ func TestCompiler_Compile(t *testing.T) {
 			},
 			constants: []string{"foo", "bar"},
 		},
+		{
+			node: ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.PLUS,
+				ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOI32),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.MINUS,
+				ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BLOAD, 1),
+				bytecode.New(bytecode.BTOI32),
+				bytecode.New(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF)),
+				bytecode.New(bytecode.I32MUL),
+			},
+		},
 	}
 
 	for _, tt := range tests {

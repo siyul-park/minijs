@@ -45,6 +45,8 @@ func (i *Interpreter) Top(offset int) Value {
 
 	ref := i.stack[index]
 	switch ref.kind {
+	case KindBool:
+		return Bool(ref.pointer)
 	case KindInt32:
 		return Int32(ref.pointer)
 	case KindFloat64:
@@ -73,6 +75,16 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.NOP:
 		case bytecode.POP:
 			i.pop()
+		case bytecode.BLOAD:
+			val := binary.BigEndian.Uint32(insns[frame.ip+1:])
+			i.push(Bool(val))
+			frame.ip += 4
+		case bytecode.BTOI32:
+			val, _ := i.pop().(Bool)
+			i.push(Int32(val))
+		case bytecode.BTOC:
+			val, _ := i.pop().(Bool)
+			i.push(String(val.String()))
 		case bytecode.I32LOAD:
 			val := Int32(binary.BigEndian.Uint32(insns[frame.ip+1:]))
 			i.push(val)
@@ -97,12 +109,18 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(Int32)
 			val1, _ := i.pop().(Int32)
 			i.push(val1 % val2)
+		case bytecode.I32TOB:
+			val, _ := i.pop().(Int32)
+			if val > 0 {
+				val = 1
+			}
+			i.push(Bool(val))
 		case bytecode.I32TOF64:
 			val, _ := i.pop().(Int32)
 			i.push(Float64(val))
 		case bytecode.I3TO2C:
 			val, _ := i.pop().(Int32)
-			i.push(String(strconv.Itoa(int(val))))
+			i.push(String(val.String()))
 		case bytecode.F64LOAD:
 			val := Float64(math.Float64frombits(binary.BigEndian.Uint64(insns[frame.ip+1:])))
 			i.push(val)
@@ -132,7 +150,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			i.push(Int32(val))
 		case bytecode.F64TOC:
 			val, _ := i.pop().(Float64)
-			i.push(String(strconv.FormatFloat(float64(val), 'f', -1, 64)))
+			i.push(String(val.String()))
 		case bytecode.CLOAD:
 			offset := int(binary.BigEndian.Uint32(insns[frame.ip+1:]))
 			size := int(binary.BigEndian.Uint32(insns[frame.ip+5:]))
@@ -203,6 +221,8 @@ func (i *Interpreter) push(val Value) {
 	ref := reference{kind: kind}
 
 	switch val := val.(type) {
+	case Bool:
+		ref.pointer = uint64(val)
 	case Int32:
 		ref.pointer = uint64(val)
 	case Float64:
@@ -239,6 +259,8 @@ func (i *Interpreter) pop() Value {
 	ref := i.stack[i.sp]
 
 	switch ref.kind {
+	case KindBool:
+		return Bool(ref.pointer)
 	case KindInt32:
 		return Int32(ref.pointer)
 	case KindFloat64:

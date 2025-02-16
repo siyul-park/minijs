@@ -16,17 +16,26 @@ type Compiler struct {
 }
 
 var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
+	interpreter.KindBool: {
+		interpreter.KindBool:    {},
+		interpreter.KindInt32:   {bytecode.New(bytecode.BTOI32)},
+		interpreter.KindFloat64: {},
+		interpreter.KindString:  {bytecode.New(bytecode.BTOC)},
+	},
 	interpreter.KindInt32: {
+		interpreter.KindBool:    {bytecode.New(bytecode.I32TOB)},
 		interpreter.KindInt32:   {},
 		interpreter.KindFloat64: {bytecode.New(bytecode.I32TOF64)},
 		interpreter.KindString:  {bytecode.New(bytecode.I3TO2C)},
 	},
 	interpreter.KindFloat64: {
+		interpreter.KindBool:    {},
 		interpreter.KindInt32:   {bytecode.New(bytecode.F64I32)},
 		interpreter.KindFloat64: {},
 		interpreter.KindString:  {bytecode.New(bytecode.F64TOC)},
 	},
 	interpreter.KindString: {
+		interpreter.KindBool:    {},
 		interpreter.KindInt32:   {bytecode.New(bytecode.CTOI32)},
 		interpreter.KindFloat64: {bytecode.New(bytecode.CTOF64)},
 		interpreter.KindString:  {},
@@ -53,6 +62,8 @@ func (c *Compiler) compile(node ast.Node) (interpreter.Kind, error) {
 		return c.program(node)
 	case *ast.Statement:
 		return c.statement(node)
+	case *ast.BoolLiteral:
+		return c.bool(node)
 	case *ast.NumberLiteral:
 		return c.number(node)
 	case *ast.StringLiteral:
@@ -81,6 +92,15 @@ func (c *Compiler) statement(node *ast.Statement) (interpreter.Kind, error) {
 	}
 	c.emit(bytecode.POP)
 	return interpreter.KindVoid, nil
+}
+
+func (c *Compiler) bool(node *ast.BoolLiteral) (interpreter.Kind, error) {
+	value := uint64(0)
+	if node.Value {
+		value = 1
+	}
+	c.emit(bytecode.BLOAD, value)
+	return interpreter.KindBool, nil
 }
 
 func (c *Compiler) number(node *ast.NumberLiteral) (interpreter.Kind, error) {
@@ -113,11 +133,17 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (interpreter.Kin
 
 	switch node.Token {
 	case token.PLUS, token.MINUS:
+		if right == interpreter.KindBool {
+			if right, err = c.cast(right, interpreter.KindInt32); err != nil {
+				return interpreter.KindInvalid, err
+			}
+		}
 		if right != interpreter.KindInt32 && right != interpreter.KindFloat64 {
 			if right, err = c.cast(right, interpreter.KindFloat64); err != nil {
 				return interpreter.KindInvalid, err
 			}
 		}
+
 		if node.Token == token.MINUS {
 			switch right {
 			case interpreter.KindInt32:
@@ -143,12 +169,24 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 	left := c.kind(node.Left)
 	right := c.kind(node.Right)
 
+	if right == interpreter.KindBool {
+		right = interpreter.KindInt32
+	}
+
+	if left == interpreter.KindBool {
+		left = interpreter.KindInt32
+	}
+
 	if left == interpreter.KindString || right == interpreter.KindString {
 		left, right = interpreter.KindString, interpreter.KindString
 	}
 
 	if left == interpreter.KindFloat64 || right == interpreter.KindFloat64 || node.Token == token.DIVIDE || node.Token == token.MODULO {
 		left, right = interpreter.KindFloat64, interpreter.KindFloat64
+	}
+
+	if left == interpreter.KindInt32 || right == interpreter.KindInt32 {
+		left, right = interpreter.KindInt32, interpreter.KindInt32
 	}
 
 	left, err := c.compile(node.Left)
