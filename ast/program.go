@@ -3,11 +3,11 @@ package ast
 import "bytes"
 
 type Program struct {
-	Statements []*Statement
+	Statements []Statement
 }
 
-func NewProgram(stmts ...*Statement) *Program {
-	return &Program{Statements: stmts}
+func NewProgram(statements ...Statement) *Program {
+	return &Program{Statements: statements}
 }
 
 func (p *Program) String() string {

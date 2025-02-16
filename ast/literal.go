@@ -11,39 +11,24 @@ type BoolLiteral struct {
 	Value bool
 }
 
+func NewBoolLiteral(tok token.Token, value bool) *BoolLiteral {
+	return &BoolLiteral{Token: tok, Value: value}
+}
+
+func (n *BoolLiteral) String() string {
+	return n.Token.Literal
+}
+
+func (n *BoolLiteral) expression() {
+}
+
 type NumberLiteral struct {
 	Token token.Token
 	Value float64
 }
 
-type StringLiteral struct {
-	Token token.Token
-	Value string
-}
-
-type IdentifierLiteral struct {
-	Token token.Token
-	Value string
-}
-
-func NewBoolLiteral(tok token.Token, value bool) *BoolLiteral {
-	return &BoolLiteral{Token: tok, Value: value}
-}
-
 func NewNumberLiteral(tok token.Token, value float64) *NumberLiteral {
 	return &NumberLiteral{Token: tok, Value: value}
-}
-
-func NewStringLiteral(tok token.Token, value string) *StringLiteral {
-	return &StringLiteral{Token: tok, Value: value}
-}
-
-func NewIdentifierLiteral(tok token.Token, value string) *IdentifierLiteral {
-	return &IdentifierLiteral{Token: tok, Value: value}
-}
-
-func (n *BoolLiteral) String() string {
-	return n.Token.Literal
 }
 
 func (n *NumberLiteral) IsInteger() bool {
@@ -57,10 +42,37 @@ func (n *NumberLiteral) String() string {
 	return n.Token.Literal
 }
 
+func (n *NumberLiteral) expression() {
+}
+
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func NewStringLiteral(tok token.Token, value string) *StringLiteral {
+	return &StringLiteral{Token: tok, Value: value}
+}
+
 func (n *StringLiteral) String() string {
 	return n.Token.Literal
 }
 
+func (n *StringLiteral) expression() {
+}
+
+type IdentifierLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func NewIdentifierLiteral(tok token.Token, value string) *IdentifierLiteral {
+	return &IdentifierLiteral{Token: tok, Value: value}
+}
+
 func (n *IdentifierLiteral) String() string {
 	return n.Value
+}
+
+func (n *IdentifierLiteral) expression() {
 }

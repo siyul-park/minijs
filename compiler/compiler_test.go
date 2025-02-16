@@ -17,6 +17,34 @@ func TestCompiler_Compile(t *testing.T) {
 		literals     []string
 	}{
 		{
+			node: ast.NewEmptyStatement(),
+		},
+		{
+			node: ast.NewExpressionStatement(
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
+			node: ast.NewBlockStatement(
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
+				),
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
+				),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.POP),
+				bytecode.New(bytecode.I32LOAD, 2),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
 			node: ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),

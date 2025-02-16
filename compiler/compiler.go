@@ -60,14 +60,18 @@ func (c *Compiler) compile(node ast.Node) (interpreter.Kind, error) {
 	switch node := node.(type) {
 	case *ast.Program:
 		return c.program(node)
-	case *ast.Statement:
-		return c.statement(node)
 	case *ast.BoolLiteral:
 		return c.bool(node)
 	case *ast.NumberLiteral:
 		return c.number(node)
 	case *ast.StringLiteral:
 		return c.string(node)
+	case *ast.EmptyStatement:
+		return c.emptyStatement(node)
+	case *ast.ExpressionStatement:
+		return c.expressionStatement(node)
+	case *ast.BlockStatement:
+		return c.blockStatement(node)
 	case *ast.PrefixExpression:
 		return c.prefixExpression(node)
 	case *ast.InfixExpression:
@@ -78,19 +82,11 @@ func (c *Compiler) compile(node ast.Node) (interpreter.Kind, error) {
 }
 
 func (c *Compiler) program(node *ast.Program) (interpreter.Kind, error) {
-	for _, stmt := range node.Statements {
-		if _, err := c.statement(stmt); err != nil {
+	for _, n := range node.Statements {
+		if _, err := c.compile(n); err != nil {
 			return interpreter.KindInvalid, err
 		}
 	}
-	return interpreter.KindVoid, nil
-}
-
-func (c *Compiler) statement(node *ast.Statement) (interpreter.Kind, error) {
-	if _, err := c.compile(node.Node); err != nil {
-		return interpreter.KindInvalid, err
-	}
-	c.emit(bytecode.POP)
 	return interpreter.KindVoid, nil
 }
 
@@ -123,6 +119,27 @@ func (c *Compiler) string(node *ast.StringLiteral) (interpreter.Kind, error) {
 	offset, size := c.store(node.Value)
 	c.emit(bytecode.CLOAD, uint64(offset), uint64(size))
 	return interpreter.KindString, nil
+}
+
+func (c *Compiler) emptyStatement(_ *ast.EmptyStatement) (interpreter.Kind, error) {
+	return interpreter.KindVoid, nil
+}
+
+func (c *Compiler) expressionStatement(node *ast.ExpressionStatement) (interpreter.Kind, error) {
+	if _, err := c.compile(node.Expression); err != nil {
+		return interpreter.KindInvalid, err
+	}
+	c.emit(bytecode.POP)
+	return interpreter.KindVoid, nil
+}
+
+func (c *Compiler) blockStatement(node *ast.BlockStatement) (interpreter.Kind, error) {
+	for _, n := range node.Statements {
+		if _, err := c.compile(n); err != nil {
+			return interpreter.KindInvalid, err
+		}
+	}
+	return interpreter.KindVoid, nil
 }
 
 func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (interpreter.Kind, error) {

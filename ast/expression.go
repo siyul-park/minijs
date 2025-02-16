@@ -6,23 +6,18 @@ import (
 	"github.com/siyul-park/minijs/token"
 )
 
+type Expression interface {
+	Node
+	expression()
+}
+
 type PrefixExpression struct {
 	Token token.Token
-	Right Node
+	Right Expression
 }
 
-type InfixExpression struct {
-	Token token.Token
-	Left  Node
-	Right Node
-}
-
-func NewPrefixExpression(token token.Token, right Node) *PrefixExpression {
+func NewPrefixExpression(token token.Token, right Expression) *PrefixExpression {
 	return &PrefixExpression{Token: token, Right: right}
-}
-
-func NewInfixExpression(token token.Token, left, right Node) *InfixExpression {
-	return &InfixExpression{Token: token, Left: left, Right: right}
 }
 
 func (n *PrefixExpression) String() string {
@@ -34,6 +29,19 @@ func (n *PrefixExpression) String() string {
 	return out.String()
 }
 
+func (n *PrefixExpression) expression() {
+}
+
+type InfixExpression struct {
+	Token token.Token
+	Left  Expression
+	Right Expression
+}
+
+func NewInfixExpression(token token.Token, left, right Expression) *InfixExpression {
+	return &InfixExpression{Token: token, Left: left, Right: right}
+}
+
 func (n *InfixExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("(")
@@ -42,4 +50,7 @@ func (n *InfixExpression) String() string {
 	out.WriteString(n.Right.String())
 	out.WriteString(")")
 	return out.String()
+}
+
+func (n *InfixExpression) expression() {
 }

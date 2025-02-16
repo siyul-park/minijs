@@ -16,18 +16,31 @@ func TestParser_Parse(t *testing.T) {
 		program *ast.Program
 	}{
 		{"", ast.NewProgram()},
-		{";", ast.NewProgram(ast.NewStatement(nil))},
+		{";", ast.NewProgram(ast.NewEmptyStatement())},
+		{
+			"{ 1; 2; }",
+			ast.NewProgram(
+				ast.NewBlockStatement(
+					ast.NewExpressionStatement(
+						ast.NewNumberLiteral(token.New(token.NUMBER, "1"), 1),
+					),
+					ast.NewExpressionStatement(
+						ast.NewNumberLiteral(token.New(token.NUMBER, "2"), 2),
+					),
+				),
+			),
+		},
 		{
 			"a + b; c + d",
 			ast.NewProgram(
-				ast.NewStatement(
+				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
 						token.PLUS,
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 					),
 				),
-				ast.NewStatement(
+				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
 						token.PLUS,
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "c"), "c"),
@@ -37,33 +50,84 @@ func TestParser_Parse(t *testing.T) {
 			),
 		},
 		{
-			"1234567890",
+			"123",
 			ast.NewProgram(
-				ast.NewStatement(
-					ast.NewNumberLiteral(token.New(token.NUMBER, "1234567890"), 1234567890),
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.New(token.NUMBER, "123"), 123),
 				),
 			),
 		},
 		{
-			`"hello"`,
+			"1.23",
 			ast.NewProgram(
-				ast.NewStatement(
-					ast.NewStringLiteral(token.New(token.STRING, "hello"), "hello"),
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.New(token.NUMBER, "1.23"), 1.23),
+				),
+			),
+		},
+		{
+			"0b01",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.New(token.NUMBER, "0b01"), 0b01),
+				),
+			),
+		},
+		{
+			"0o01",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.New(token.NUMBER, "0o01"), 0o01),
+				),
+			),
+		},
+		{
+			"0x01",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewNumberLiteral(token.New(token.NUMBER, "0x01"), 0x01),
 				),
 			),
 		},
 		{
 			"true",
 			ast.NewProgram(
-				ast.NewStatement(
+				ast.NewExpressionStatement(
 					ast.NewBoolLiteral(token.New(token.BOOLEAN, "true"), true),
+				),
+			),
+		},
+		{
+			"foo",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "foo"), "foo"),
+				),
+			),
+		},
+		{
+			`"hello"`,
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewStringLiteral(token.New(token.STRING, "hello"), "hello"),
+				),
+			),
+		},
+		{
+			"-1",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewPrefixExpression(
+						token.MINUS,
+						ast.NewNumberLiteral(token.New(token.NUMBER, "1"), 1),
+					),
 				),
 			),
 		},
 		{
 			"a + b",
 			ast.NewProgram(
-				ast.NewStatement(
+				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
 						token.PLUS,
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
@@ -75,7 +139,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			"a + b + c",
 			ast.NewProgram(
-				ast.NewStatement(
+				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
 						token.PLUS,
 						ast.NewInfixExpression(
@@ -91,7 +155,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			"a * b + c",
 			ast.NewProgram(
-				ast.NewStatement(
+				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
 						token.PLUS,
 						ast.NewInfixExpression(

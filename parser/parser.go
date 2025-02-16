@@ -13,8 +13,8 @@ import (
 type Parser struct {
 	lexer  *lexer.Lexer
 	tokens [3]token.Token
-	prefix map[token.Type]func() (ast.Node, error)
-	infix  map[token.Type]func(ast.Node) (ast.Node, error)
+	prefix map[token.Type]func() (ast.Expression, error)
+	infix  map[token.Type]func(ast.Expression) (ast.Expression, error)
 }
 
 const (
@@ -50,7 +50,7 @@ func New(lexer *lexer.Lexer) *Parser {
 		lexer.Next(),
 	}}
 
-	p.prefix = map[token.Type]func() (ast.Node, error){
+	p.prefix = map[token.Type]func() (ast.Expression, error){
 		token.NUMBER:            p.numberLiteral,
 		token.STRING:            p.stringLiteral,
 		token.BOOLEAN:           p.boolLiteral,
@@ -59,7 +59,7 @@ func New(lexer *lexer.Lexer) *Parser {
 		token.MINUS.Kind():      p.prefixExpression,
 		token.LEFT_PAREN.Kind(): p.groupedExpression,
 	}
-	p.infix = map[token.Type]func(ast.Node) (ast.Node, error){
+	p.infix = map[token.Type]func(ast.Expression) (ast.Expression, error){
 		token.PLUS.Kind():     p.infixExpression,
 		token.MINUS.Kind():    p.infixExpression,
 		token.MULTIPLE.Kind(): p.infixExpression,
@@ -78,27 +78,30 @@ func (p *Parser) Parse() (*ast.Program, error) {
 			return nil, err
 		}
 		program.Statements = append(program.Statements, stmt)
-		p.pop()
 	}
 	return program, nil
 }
 
-func (p *Parser) statement() (*ast.Statement, error) {
+func (p *Parser) statement() (ast.Statement, error) {
 	if p.peek(CURR) == token.SEMICOLON {
 		p.pop()
-		return ast.NewStatement(nil), nil
+		return ast.NewEmptyStatement(), nil
 	}
+	if p.peek(CURR) == token.LEFT_BRACE {
+		return p.blockStatement()
+	}
+
 	exp, err := p.expression(LOWEST)
 	if err != nil {
 		return nil, err
 	}
-	if p.peek(NEXT) == token.SEMICOLON {
+	if p.peek(CURR) == token.SEMICOLON {
 		p.pop()
 	}
-	return ast.NewStatement(exp), nil
+	return ast.NewExpressionStatement(exp), nil
 }
 
-func (p *Parser) expression(precedence int) (ast.Node, error) {
+func (p *Parser) expression(precedence int) (ast.Expression, error) {
 	prefix, ok := p.prefix[p.peek(CURR).Kind()]
 	if !ok {
 		return nil, fmt.Errorf("no prefix expression function for %s", p.peek(CURR).Kind())
@@ -109,13 +112,11 @@ func (p *Parser) expression(precedence int) (ast.Node, error) {
 		return nil, err
 	}
 
-	for p.peek(CURR) != token.SEMICOLON && precedence < p.precedence(NEXT) {
-		infix, ok := p.infix[p.peek(NEXT).Kind()]
+	for p.peek(CURR) != token.SEMICOLON && precedence < p.precedence(CURR) {
+		infix, ok := p.infix[p.peek(CURR).Kind()]
 		if !ok {
 			return left, nil
 		}
-
-		p.pop()
 		left, err = infix(left)
 		if err != nil {
 			return nil, err
@@ -124,8 +125,9 @@ func (p *Parser) expression(precedence int) (ast.Node, error) {
 	return left, nil
 }
 
-func (p *Parser) numberLiteral() (ast.Node, error) {
+func (p *Parser) numberLiteral() (ast.Expression, error) {
 	curr := p.peek(CURR)
+	p.pop()
 
 	if curr.Literal == "NaN" || curr.Literal == "Infinity" {
 		return ast.NewNumberLiteral(curr, 0), nil
@@ -161,24 +163,42 @@ func (p *Parser) numberLiteral() (ast.Node, error) {
 	return ast.NewNumberLiteral(curr, value), nil
 }
 
-func (p *Parser) stringLiteral() (ast.Node, error) {
+func (p *Parser) stringLiteral() (ast.Expression, error) {
 	curr := p.peek(CURR)
+	p.pop()
 	return ast.NewStringLiteral(curr, curr.Literal), nil
 }
 
-func (p *Parser) boolLiteral() (ast.Node, error) {
+func (p *Parser) boolLiteral() (ast.Expression, error) {
 	curr := p.peek(CURR)
+	p.pop()
 	return ast.NewBoolLiteral(curr, curr.Literal == "true"), nil
 }
 
-func (p *Parser) identifierLiteral() (ast.Node, error) {
+func (p *Parser) identifierLiteral() (ast.Expression, error) {
 	curr := p.peek(CURR)
+	p.pop()
 	return ast.NewIdentifierLiteral(curr, curr.Literal), nil
 }
 
-func (p *Parser) prefixExpression() (ast.Node, error) {
-	curr := p.peek(CURR)
+func (p *Parser) blockStatement() (ast.Statement, error) {
+	p.pop()
 
+	var statements []ast.Statement
+	for p.peek(CURR) != token.RIGHT_BRACE {
+		if node, err := p.statement(); err != nil {
+			return nil, err
+		} else {
+			statements = append(statements, node)
+		}
+	}
+
+	p.pop()
+	return ast.NewBlockStatement(statements...), nil
+}
+
+func (p *Parser) prefixExpression() (ast.Expression, error) {
+	curr := p.peek(CURR)
 	p.pop()
 
 	right, err := p.expression(PREFIX)
@@ -188,10 +208,9 @@ func (p *Parser) prefixExpression() (ast.Node, error) {
 	return ast.NewPrefixExpression(curr, right), nil
 }
 
-func (p *Parser) infixExpression(left ast.Node) (ast.Node, error) {
+func (p *Parser) infixExpression(left ast.Expression) (ast.Expression, error) {
 	curr := p.peek(CURR)
 	precedence := p.precedence(CURR)
-
 	p.pop()
 
 	right, err := p.expression(precedence)
@@ -201,7 +220,7 @@ func (p *Parser) infixExpression(left ast.Node) (ast.Node, error) {
 	return ast.NewInfixExpression(curr, left, right), nil
 }
 
-func (p *Parser) groupedExpression() (ast.Node, error) {
+func (p *Parser) groupedExpression() (ast.Expression, error) {
 	p.pop()
 
 	n, err := p.expression(LOWEST)

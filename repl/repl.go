@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/siyul-park/minijs/bytecode"
+
 	"github.com/siyul-park/minijs/compiler"
 	"github.com/siyul-park/minijs/interpreter"
 	"github.com/siyul-park/minijs/lexer"
@@ -63,12 +65,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			continue
 		}
 
-		stmts := program.Statements
-		if len(stmts) == 0 {
-			continue
-		}
-
-		code, err := c.Compile(stmts[len(stmts)-1].Node)
+		code, err := c.Compile(program)
 		if err != nil {
 			if err := r.error(writer, err); err != nil {
 				return err
@@ -80,6 +77,21 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			if _, err := fmt.Fprintln(writer, code.String()); err != nil {
 				return err
 			}
+		}
+
+		var insts []bytecode.Instruction
+		for offset := 0; offset < len(code.Instructions); {
+			inst, size := code.Instruction(offset)
+			insts = append(insts, inst)
+			offset += size
+		}
+		if len(insts) > 0 {
+			if insts[len(insts)-1].Opcode() == bytecode.POP {
+				insts = insts[:len(insts)-1]
+			}
+
+			code.Instructions = nil
+			code.Add(insts...)
 		}
 
 		if err := i.Execute(code); err != nil {
