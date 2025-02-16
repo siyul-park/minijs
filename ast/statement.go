@@ -23,21 +23,6 @@ func (n *EmptyStatement) String() string {
 func (n *EmptyStatement) statement() {
 }
 
-type ExpressionStatement struct {
-	Expression Expression
-}
-
-func NewExpressionStatement(expression Expression) *ExpressionStatement {
-	return &ExpressionStatement{Expression: expression}
-}
-
-func (n *ExpressionStatement) String() string {
-	return n.Expression.String() + ";"
-}
-
-func (n *ExpressionStatement) statement() {
-}
-
 type BlockStatement struct {
 	Statements []Statement
 }
@@ -61,4 +46,19 @@ func (n *BlockStatement) String() string {
 }
 
 func (n *BlockStatement) statement() {
+}
+
+type ExpressionStatement struct {
+	Expression Expression
+}
+
+func NewExpressionStatement(expression Expression) *ExpressionStatement {
+	return &ExpressionStatement{Expression: expression}
+}
+
+func (n *ExpressionStatement) String() string {
+	return n.Expression.String() + ";"
+}
+
+func (n *ExpressionStatement) statement() {
 }

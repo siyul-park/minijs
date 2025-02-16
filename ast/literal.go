@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"strings"
-
 	"github.com/siyul-park/minijs/token"
 )
 
@@ -29,13 +27,6 @@ type NumberLiteral struct {
 
 func NewNumberLiteral(tok token.Token, value float64) *NumberLiteral {
 	return &NumberLiteral{Token: tok, Value: value}
-}
-
-func (n *NumberLiteral) IsInteger() bool {
-	if strings.Contains(n.Token.Literal, ".") || strings.Contains(n.Token.Literal, "e") {
-		return false
-	}
-	return n.Value == float64(int32(n.Value))
 }
 
 func (n *NumberLiteral) String() string {
