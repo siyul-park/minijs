@@ -130,6 +130,7 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) (interpreter.Kin
 					c.emit(bytecode.F64LOAD, math.Float64bits(-1))
 					c.emit(bytecode.F64MUL)
 				}
+			default:
 			}
 		}
 		return right, nil
@@ -218,7 +219,7 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) (interpreter.Kind,
 		}
 	}
 
-	return interpreter.KindInvalid, fmt.Errorf("unsupported operator for types %s and %s: %s", left, right, node.Token.Kind())
+	return interpreter.KindInvalid, fmt.Errorf("unsupported operator: %s", node.Token.Kind())
 }
 
 func (c *Compiler) cast(from, to interpreter.Kind) (interpreter.Kind, error) {
@@ -250,7 +251,7 @@ func (c *Compiler) cast(from, to interpreter.Kind) (interpreter.Kind, error) {
 			}
 		}
 	}
-	return interpreter.KindInvalid, fmt.Errorf("no cast path found from %s to %s", from, to)
+	return interpreter.KindInvalid, fmt.Errorf("no cast path found")
 }
 
 func (c *Compiler) kind(node ast.Node) interpreter.Kind {

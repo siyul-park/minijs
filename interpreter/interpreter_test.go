@@ -1,11 +1,10 @@
 package interpreter
 
 import (
-	"math"
-	"testing"
-
 	"github.com/siyul-park/minijs/bytecode"
 	"github.com/stretchr/testify/assert"
+	"math"
+	"testing"
 )
 
 func TestInterpreter_Execute(t *testing.T) {

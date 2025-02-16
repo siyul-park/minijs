@@ -10,7 +10,9 @@ import (
 )
 
 type Interpreter struct {
-	stack  []Value
+	stack  []reference
+	heap   []value
+	free   []uint32
 	frames []*Frame
 	sp     int
 	fp     int
@@ -18,9 +20,21 @@ type Interpreter struct {
 
 func New() *Interpreter {
 	return &Interpreter{
-		stack:  make([]Value, 64),
+		stack:  make([]reference, 64),
+		heap:   make([]value, 0, 64),
+		free:   make([]uint32, 0, 64),
 		frames: make([]*Frame, 64),
 	}
+}
+
+type reference struct {
+	kind    Kind
+	pointer uint32
+}
+
+type value struct {
+	kind  Kind
+	value Value
 }
 
 func (i *Interpreter) Top(offset int) Value {
@@ -28,7 +42,15 @@ func (i *Interpreter) Top(offset int) Value {
 	if index > len(i.stack) {
 		return nil
 	}
-	return i.stack[index]
+
+	ref := i.stack[index]
+	switch ref.kind {
+	case KindInt32:
+		return Int32(ref.pointer)
+	default:
+		v := i.heap[ref.pointer]
+		return v.value
+	}
 }
 
 func (i *Interpreter) Execute(code bytecode.Bytecode) error {
@@ -170,11 +192,37 @@ func (i *Interpreter) exit() {
 
 func (i *Interpreter) push(val Value) {
 	if len(i.stack) <= i.sp {
-		stack := make([]Value, i.sp*2)
+		stack := make([]reference, i.sp*2)
 		copy(stack, i.stack)
 		i.stack = stack
 	}
-	i.stack[i.sp] = val
+
+	kind := val.Kind()
+	ref := reference{kind: kind}
+
+	switch val := val.(type) {
+	case Int32:
+		ref.pointer = uint32(val)
+	default:
+		v := value{kind: kind, value: val}
+
+		index := -1
+		if len(i.free) > 0 {
+			index = int(i.free[len(i.free)-1])
+			i.free = i.free[:len(i.free)-1]
+		}
+
+		if index >= 0 {
+			i.heap[index] = v
+		} else {
+			i.heap = append(i.heap, v)
+			index = len(i.heap) - 1
+		}
+
+		ref.pointer = uint32(index)
+	}
+
+	i.stack[i.sp] = ref
 	i.sp++
 }
 
@@ -182,6 +230,16 @@ func (i *Interpreter) pop() Value {
 	if i.sp == 0 {
 		return nil
 	}
+
 	i.sp--
-	return i.stack[i.sp]
+	ref := i.stack[i.sp]
+
+	switch ref.kind {
+	case KindInt32:
+		return Int32(ref.pointer)
+	default:
+		v := i.heap[ref.pointer]
+		i.free = append(i.free, ref.pointer)
+		return v.value
+	}
 }

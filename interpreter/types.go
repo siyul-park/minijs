@@ -11,14 +11,14 @@ type Value interface {
 	String() string
 }
 
-type Kind string
+type Kind byte
 
 const (
-	KindInvalid Kind = "<invalid>"
-	KindVoid    Kind = "void"
-	KindInt32   Kind = "int32"
-	KindFloat64 Kind = "float64"
-	KindString  Kind = "string"
+	KindInvalid Kind = iota
+	KindVoid
+	KindInt32
+	KindFloat64
+	KindString
 )
 
 type Int32 int32
