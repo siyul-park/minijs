@@ -1,4 +1,4 @@
-# minijs
+ # minijs
 
 [![go report][go_report_img]][go_report_url]
 [![go doc][go_doc_img]][go_doc_url]
@@ -74,7 +74,7 @@ _main:
 파일을 실행하면 최적화 과정이 적용되어 바이트 코드가 더욱 효율적으로 변환됩니다. 자바스크립트 파일을 실행하려면 다음 명령어를 사용합니다:
 
 ```bash
-minijs bababa.js
+minijs banana.js
 ```
 
 #### 바이트코드 출력
@@ -82,7 +82,7 @@ minijs bababa.js
 바이트코드를 출력하려면 `-print-bytecode` 플래그를 사용합니다.
 
 ```bash
-minijs -print-bytecode bababa.js
+minijs -print-bytecode banana.js
 ```
 
 ```text

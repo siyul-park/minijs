@@ -74,7 +74,7 @@ _main:
 When executing a file, **minijs** applies optimization processes to make the bytecode more efficient. To run a JavaScript file, use the following command:
 
 ```bash
-minijs bababa.js  
+minijs banana.js  
 ```
 
 ### **Printing Bytecode from a File**
@@ -82,7 +82,7 @@ minijs bababa.js
 To print the bytecode while executing a file, use the `-print-bytecode` flag.
 
 ```bash
-minijs -print-bytecode bababa.js  
+minijs -print-bytecode banana.js  
 ```
 
 ```text

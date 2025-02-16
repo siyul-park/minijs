@@ -10,31 +10,26 @@ import (
 )
 
 type Interpreter struct {
-	stack  []reference
-	heap   []value
+	stack  []mark
+	heap   []Value
 	free   []uint64
 	frames []*Frame
 	sp     int
 	fp     int
 }
 
-func New() *Interpreter {
-	return &Interpreter{
-		stack:  make([]reference, 64),
-		heap:   make([]value, 0, 64),
-		free:   make([]uint64, 0, 64),
-		frames: make([]*Frame, 64),
-	}
-}
-
-type reference struct {
+type mark struct {
 	kind    Kind
 	pointer uint64
 }
 
-type value struct {
-	kind  Kind
-	value Value
+func New() *Interpreter {
+	return &Interpreter{
+		stack:  make([]mark, 64),
+		heap:   make([]Value, 0, 64),
+		free:   make([]uint64, 0, 64),
+		frames: make([]*Frame, 64),
+	}
 }
 
 func (i *Interpreter) Pop() Value {
@@ -196,13 +191,13 @@ func (i *Interpreter) exit() {
 
 func (i *Interpreter) push(val Value) {
 	if len(i.stack) <= i.sp {
-		stack := make([]reference, i.sp*2)
+		stack := make([]mark, i.sp*2)
 		copy(stack, i.stack)
 		i.stack = stack
 	}
 
 	kind := val.Kind()
-	ref := reference{kind: kind}
+	ref := mark{kind: kind}
 
 	switch val := val.(type) {
 	case Bool:
@@ -212,8 +207,6 @@ func (i *Interpreter) push(val Value) {
 	case Float64:
 		ref.pointer = math.Float64bits(float64(val))
 	default:
-		v := value{kind: kind, value: val}
-
 		index := -1
 		if len(i.free) > 0 {
 			index = int(i.free[len(i.free)-1])
@@ -221,9 +214,9 @@ func (i *Interpreter) push(val Value) {
 		}
 
 		if index >= 0 {
-			i.heap[index] = v
+			i.heap[index] = val
 		} else {
-			i.heap = append(i.heap, v)
+			i.heap = append(i.heap, val)
 			index = len(i.heap) - 1
 		}
 
@@ -252,6 +245,6 @@ func (i *Interpreter) pop() Value {
 	default:
 		v := i.heap[ref.pointer]
 		i.free = append(i.free, ref.pointer)
-		return v.value
+		return v
 	}
 }

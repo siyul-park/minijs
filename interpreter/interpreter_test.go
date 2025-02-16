@@ -8,11 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInterpreter_Pop(t *testing.T) {
-	f := Float64(math.NaN())
-	assert.True(t, math.IsNaN(float64(f)), "Expected f to be NaN")
-}
-
 func TestInterpreter_Execute(t *testing.T) {
 	tests := []struct {
 		instructions []bytecode.Instruction

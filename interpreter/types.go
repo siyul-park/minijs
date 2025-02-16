@@ -3,8 +3,6 @@ package interpreter
 import (
 	"math"
 	"strconv"
-
-	"github.com/siyul-park/minijs/bytecode"
 )
 
 type Value interface {
@@ -23,43 +21,6 @@ const (
 	KindFloat64
 	KindString
 )
-
-var kinds = map[bytecode.Opcode]Kind{
-	bytecode.NOP: KindInvalid,
-	bytecode.POP: KindInvalid,
-
-	bytecode.BLOAD:  KindBool,
-	bytecode.BTOI32: KindBool,
-	bytecode.BTOC:   KindBool,
-
-	bytecode.I32LOAD:  KindInt32,
-	bytecode.I32MUL:   KindInt32,
-	bytecode.I32ADD:   KindInt32,
-	bytecode.I32SUB:   KindInt32,
-	bytecode.I32DIV:   KindInt32,
-	bytecode.I32MOD:   KindInt32,
-	bytecode.I32TOB:   KindInt32,
-	bytecode.I32TOF64: KindInt32,
-	bytecode.I32TOC:   KindInt32,
-
-	bytecode.F64LOAD:  KindFloat64,
-	bytecode.F64ADD:   KindFloat64,
-	bytecode.F64SUB:   KindFloat64,
-	bytecode.F64MUL:   KindFloat64,
-	bytecode.F64DIV:   KindFloat64,
-	bytecode.F64MOD:   KindFloat64,
-	bytecode.F64TOI32: KindFloat64,
-	bytecode.F64TOC:   KindFloat64,
-
-	bytecode.CLOAD:  KindString,
-	bytecode.CADD:   KindString,
-	bytecode.CTOI32: KindString,
-	bytecode.CTOF64: KindString,
-}
-
-func KindOf(opcode bytecode.Opcode) Kind {
-	return kinds[opcode]
-}
 
 func (k Kind) String() string {
 	switch k {
