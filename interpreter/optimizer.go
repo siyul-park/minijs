@@ -1,4 +1,4 @@
-package compiler
+package interpreter
 
 import (
 	"bytes"
@@ -6,16 +6,15 @@ import (
 	"math"
 
 	"github.com/siyul-park/minijs/bytecode"
-	"github.com/siyul-park/minijs/interpreter"
 )
 
 type Optimizer struct {
-	interpreter *interpreter.Interpreter
+	interpreter *Interpreter
 }
 
 func NewOptimizer() *Optimizer {
 	return &Optimizer{
-		interpreter: interpreter.New(),
+		interpreter: New(),
 	}
 }
 
@@ -90,7 +89,8 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 						return nil, nil, err
 					}
 
-					val, _ := o.interpreter.Pop().(interpreter.Bool)
+					val, _ := o.interpreter.Pop().(Bool)
+
 					insts[i-1] = bytecode.New(bytecode.NOP)
 					insts[i] = bytecode.New(bytecode.BLOAD, uint64(val))
 				case bytecode.BTOI32, bytecode.F64TOI32, bytecode.CTOI32:
@@ -100,7 +100,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 						return nil, nil, err
 					}
 
-					val, _ := o.interpreter.Pop().(interpreter.Int32)
+					val, _ := o.interpreter.Pop().(Int32)
 
 					insts[i-1] = bytecode.New(bytecode.NOP)
 					insts[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
@@ -111,7 +111,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 						return nil, nil, err
 					}
 
-					val, _ := o.interpreter.Pop().(interpreter.Float64)
+					val, _ := o.interpreter.Pop().(Float64)
 
 					insts[i-1] = bytecode.New(bytecode.NOP)
 					insts[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
@@ -122,7 +122,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 						return nil, nil, err
 					}
 
-					val, _ := o.interpreter.Pop().(interpreter.String)
+					val, _ := o.interpreter.Pop().(String)
 
 					offset, ok := offsets[string(val)]
 					if !ok {
@@ -153,7 +153,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 							return nil, nil, err
 						}
 
-						val, _ := o.interpreter.Pop().(interpreter.Int32)
+						val, _ := o.interpreter.Pop().(Int32)
 
 						insts[i-2] = bytecode.New(bytecode.NOP)
 						insts[i-1] = bytecode.New(bytecode.NOP)
@@ -165,7 +165,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 							return nil, nil, err
 						}
 
-						val, _ := o.interpreter.Pop().(interpreter.Float64)
+						val, _ := o.interpreter.Pop().(Float64)
 
 						insts[i-2] = bytecode.New(bytecode.NOP)
 						insts[i-1] = bytecode.New(bytecode.NOP)
@@ -177,7 +177,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 							return nil, nil, err
 						}
 
-						val, _ := o.interpreter.Pop().(interpreter.String)
+						val, _ := o.interpreter.Pop().(String)
 
 						offset, ok := offsets[string(val)]
 						if !ok {
