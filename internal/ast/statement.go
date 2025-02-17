@@ -6,10 +6,17 @@ import (
 
 type Statement interface {
 	Node
-	statement()
+	_statement()
+}
+
+type statement struct {
+}
+
+func (statement) _statement() {
 }
 
 type EmptyStatement struct {
+	statement
 }
 
 func NewEmptyStatement() *EmptyStatement {
@@ -20,10 +27,8 @@ func (n *EmptyStatement) String() string {
 	return ";"
 }
 
-func (n *EmptyStatement) statement() {
-}
-
 type BlockStatement struct {
+	statement
 	Statements []Statement
 }
 
@@ -45,10 +50,8 @@ func (n *BlockStatement) String() string {
 	return builder.String()
 }
 
-func (n *BlockStatement) statement() {
-}
-
 type ExpressionStatement struct {
+	statement
 	Expression Expression
 }
 
@@ -58,7 +61,4 @@ func NewExpressionStatement(expression Expression) *ExpressionStatement {
 
 func (n *ExpressionStatement) String() string {
 	return n.Expression.String() + ";"
-}
-
-func (n *ExpressionStatement) statement() {
 }

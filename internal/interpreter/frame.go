@@ -1,6 +1,8 @@
 package interpreter
 
-import "github.com/siyul-park/minijs/bytecode"
+import (
+	"github.com/siyul-park/minijs/internal/bytecode"
+)
 
 type Frame struct {
 	bytecode bytecode.Bytecode

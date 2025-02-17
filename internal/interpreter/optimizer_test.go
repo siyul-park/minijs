@@ -4,7 +4,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/siyul-park/minijs/bytecode"
+	"github.com/siyul-park/minijs/internal/bytecode"
+
 	"github.com/stretchr/testify/assert"
 )
 

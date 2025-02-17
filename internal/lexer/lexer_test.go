@@ -3,7 +3,8 @@ package lexer
 import (
 	"testing"
 
-	"github.com/siyul-park/minijs/token"
+	"github.com/siyul-park/minijs/internal/token"
+
 	"github.com/stretchr/testify/assert"
 )
 

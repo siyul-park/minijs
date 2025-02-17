@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/siyul-park/minijs/bytecode"
+	"github.com/siyul-park/minijs/internal/bytecode"
 )
 
 type Optimizer struct {

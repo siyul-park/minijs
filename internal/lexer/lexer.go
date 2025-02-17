@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/siyul-park/minijs/token"
+	"github.com/siyul-park/minijs/internal/token"
 )
 
 type Lexer struct {

@@ -1,19 +1,18 @@
-package repl
+package minijs
 
 import (
 	"bufio"
 	"fmt"
 	"io"
 
-	"github.com/siyul-park/minijs/bytecode"
-
-	"github.com/siyul-park/minijs/compiler"
-	"github.com/siyul-park/minijs/interpreter"
-	"github.com/siyul-park/minijs/lexer"
-	"github.com/siyul-park/minijs/parser"
+	"github.com/siyul-park/minijs/internal/bytecode"
+	"github.com/siyul-park/minijs/internal/compiler"
+	"github.com/siyul-park/minijs/internal/interpreter"
+	"github.com/siyul-park/minijs/internal/lexer"
+	"github.com/siyul-park/minijs/internal/parser"
 )
 
-type Option struct {
+type REPLOption struct {
 	PrintBytecode bool
 }
 
@@ -22,7 +21,7 @@ type REPL struct {
 	printBytecode bool
 }
 
-func New(prompt string, opts ...Option) *REPL {
+func NewREPL(prompt string, opts ...REPLOption) *REPL {
 	repl := &REPL{prompt: prompt}
 
 	for _, opt := range opts {

@@ -4,9 +4,10 @@ import (
 	"math"
 	"testing"
 
-	"github.com/siyul-park/minijs/ast"
-	"github.com/siyul-park/minijs/bytecode"
-	"github.com/siyul-park/minijs/token"
+	"github.com/siyul-park/minijs/internal/ast"
+	"github.com/siyul-park/minijs/internal/bytecode"
+	"github.com/siyul-park/minijs/internal/token"
+
 	"github.com/stretchr/testify/assert"
 )
 

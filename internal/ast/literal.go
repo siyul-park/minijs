@@ -1,10 +1,11 @@
 package ast
 
 import (
-	"github.com/siyul-park/minijs/token"
+	"github.com/siyul-park/minijs/internal/token"
 )
 
 type BoolLiteral struct {
+	expression
 	Token token.Token
 	Value bool
 }
@@ -17,10 +18,8 @@ func (n *BoolLiteral) String() string {
 	return n.Token.Literal
 }
 
-func (n *BoolLiteral) expression() {
-}
-
 type NumberLiteral struct {
+	expression
 	Token token.Token
 	Value float64
 }
@@ -33,10 +32,8 @@ func (n *NumberLiteral) String() string {
 	return n.Token.Literal
 }
 
-func (n *NumberLiteral) expression() {
-}
-
 type StringLiteral struct {
+	expression
 	Token token.Token
 	Value string
 }
@@ -49,10 +46,8 @@ func (n *StringLiteral) String() string {
 	return n.Token.Literal
 }
 
-func (n *StringLiteral) expression() {
-}
-
 type IdentifierLiteral struct {
+	expression
 	Token token.Token
 	Value string
 }
@@ -63,7 +58,4 @@ func NewIdentifierLiteral(tok token.Token, value string) *IdentifierLiteral {
 
 func (n *IdentifierLiteral) String() string {
 	return n.Value
-}
-
-func (n *IdentifierLiteral) expression() {
 }

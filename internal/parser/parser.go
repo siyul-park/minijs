@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/siyul-park/minijs/ast"
-	"github.com/siyul-park/minijs/lexer"
-	"github.com/siyul-park/minijs/token"
+	"github.com/siyul-park/minijs/internal/ast"
+	"github.com/siyul-park/minijs/internal/lexer"
+	"github.com/siyul-park/minijs/internal/token"
 )
 
 type Parser struct {

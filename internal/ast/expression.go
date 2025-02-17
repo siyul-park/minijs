@@ -3,15 +3,22 @@ package ast
 import (
 	"bytes"
 
-	"github.com/siyul-park/minijs/token"
+	"github.com/siyul-park/minijs/internal/token"
 )
 
 type Expression interface {
 	Node
-	expression()
+	_expression()
+}
+
+type expression struct {
+}
+
+func (expression) _expression() {
 }
 
 type PrefixExpression struct {
+	expression
 	Token token.Token
 	Right Expression
 }
@@ -29,10 +36,8 @@ func (n *PrefixExpression) String() string {
 	return out.String()
 }
 
-func (n *PrefixExpression) expression() {
-}
-
 type InfixExpression struct {
+	expression
 	Token token.Token
 	Left  Expression
 	Right Expression
@@ -50,7 +55,4 @@ func (n *InfixExpression) String() string {
 	out.WriteString(n.Right.String())
 	out.WriteString(")")
 	return out.String()
-}
-
-func (n *InfixExpression) expression() {
 }

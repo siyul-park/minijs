@@ -3,11 +3,11 @@ package parser
 import (
 	"testing"
 
-	"github.com/siyul-park/minijs/lexer"
-	"github.com/stretchr/testify/assert"
+	"github.com/siyul-park/minijs/internal/ast"
+	"github.com/siyul-park/minijs/internal/lexer"
+	"github.com/siyul-park/minijs/internal/token"
 
-	"github.com/siyul-park/minijs/ast"
-	"github.com/siyul-park/minijs/token"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParser_Parse(t *testing.T) {

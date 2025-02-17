@@ -7,11 +7,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/siyul-park/minijs/compiler"
-	"github.com/siyul-park/minijs/interpreter"
-	"github.com/siyul-park/minijs/lexer"
-	"github.com/siyul-park/minijs/parser"
-	"github.com/siyul-park/minijs/repl"
+	"github.com/siyul-park/minijs"
+
+	"github.com/siyul-park/minijs/internal/compiler"
+	interpreter2 "github.com/siyul-park/minijs/internal/interpreter"
+	"github.com/siyul-park/minijs/internal/lexer"
+	"github.com/siyul-park/minijs/internal/parser"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 }
 
 func runREPL(printBytecode bool) {
-	r := repl.New("> ", repl.Option{PrintBytecode: printBytecode})
+	r := minijs.NewREPL("> ", minijs.REPLOption{PrintBytecode: printBytecode})
 	if err := r.Start(os.Stdin, os.Stdout); err != nil {
 		log.Fatal("Error starting REPL: ", err)
 	}
@@ -59,7 +60,7 @@ func runFile(filePath string, printBytecode bool) {
 		log.Fatal("Error compiling program: ", err)
 	}
 
-	o := interpreter.NewOptimizer()
+	o := interpreter2.NewOptimizer()
 	code, err = o.Optimize(code)
 	if err != nil {
 		log.Fatal("Error optimize program: ", err)
@@ -68,7 +69,7 @@ func runFile(filePath string, printBytecode bool) {
 	if printBytecode {
 		fmt.Println(code.String())
 	} else {
-		i := interpreter.New()
+		i := interpreter2.New()
 		if err := i.Execute(code); err != nil {
 			log.Fatal("Error executing code: ", err)
 		}
