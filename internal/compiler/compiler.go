@@ -131,9 +131,9 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
 		return err
 	}
 
-	switch node.Token {
+	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
-		if node.Token == token.MINUS {
+		if node.Token.Type == token.MINUS {
 			switch meta.Kind {
 			case interpreter.KindInt32:
 				c.emit(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF))
@@ -146,7 +146,7 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
 		}
 		return nil
 	}
-	return fmt.Errorf("unsupported operator '%s' for types %v", node.Token.Kind(), right.Kind)
+	return fmt.Errorf("unsupported operator '%s' for types %v", node.Token.Type, right.Kind)
 }
 
 func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
@@ -170,44 +170,44 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
 
 	switch meta.Kind {
 	case interpreter.KindInt32:
-		switch node.Token {
+		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.I32ADD)
 			return nil
 		case token.MINUS:
 			c.emit(bytecode.I32SUB)
 			return nil
-		case token.MULTIPLE:
+		case token.MULTIPLY:
 			c.emit(bytecode.I32MUL)
 			return nil
 		}
 	case interpreter.KindFloat64:
-		switch node.Token {
+		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.F64ADD)
 			return nil
 		case token.MINUS:
 			c.emit(bytecode.F64SUB)
 			return nil
-		case token.MULTIPLE:
+		case token.MULTIPLY:
 			c.emit(bytecode.F64MUL)
 			return nil
 		case token.DIVIDE:
 			c.emit(bytecode.F64DIV)
 			return nil
-		case token.MODULO:
+		case token.MODULUS:
 			c.emit(bytecode.F64MOD)
 			return nil
 		}
 	case interpreter.KindString:
-		switch node.Token {
+		switch node.Token.Type {
 		case token.PLUS:
 			c.emit(bytecode.CADD)
 			return nil
 		}
 	default:
 	}
-	return fmt.Errorf("unsupported operator '%s' for types %v and %v", node.Token.Kind(), left.Kind, right.Kind)
+	return fmt.Errorf("unsupported operator '%s' for types %v and %v", node.Token.Type, left.Kind, right.Kind)
 }
 
 func (c *Compiler) boolLiteral(node *ast.BoolLiteral) error {

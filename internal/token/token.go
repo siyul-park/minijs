@@ -8,142 +8,118 @@ type Token struct {
 }
 
 const (
-	ILLEGAL    Type = "ILLEGAL"
-	IDENTIFIER Type = "IDENTIFIER"
+	ILLEGAL Type = "ILLEGAL"
+	EOF     Type = "EOF"
+
 	NUMBER     Type = "NUMBER"
-	BOOLEAN    Type = "BOOLEAN"
 	STRING     Type = "STRING"
-	KEYWORD    Type = "KEYWORD"
+	IDENTIFIER Type = "IDENTIFIER"
+
+	NULL      Type = "null"
+	UNDEFINED Type = "undefined"
+	TRUE      Type = "true"
+	FALSE     Type = "false"
+
+	BREAK      Type = "break"
+	DO         Type = "do"
+	INSTANCEOF Type = "instanceof"
+	TYPEOF     Type = "typeof"
+	CASE       Type = "case"
+	ELSE       Type = "else"
+	NEW        Type = "new"
+	VAR        Type = "var"
+	CATCH      Type = "catch"
+	FINALLY    Type = "finally"
+	RETURN     Type = "return"
+	VOID       Type = "void"
+	CONTINUE   Type = "continue"
+	FOR        Type = "for"
+	SWITCH     Type = "switch"
+	WHILE      Type = "while"
+	DEBUGGER   Type = "debugger"
+	FUNCTION   Type = "function"
+	THIS       Type = "this"
+	WITH       Type = "with"
+	DEFAULT    Type = "default"
+	IF         Type = "if"
+	THROW      Type = "throw"
+	DELETE     Type = "delete"
+	IN         Type = "in"
+	TRY        Type = "try"
+
+	OPEN_BRACKET                  Type = "["
+	CLOSE_BRACKET                 Type = "]"
+	OPEN_PAREN                    Type = "("
+	CLOSE_PAREN                   Type = ")"
+	OPEN_BRACE                    Type = "{"
+	CLOSE_BRACE                   Type = "}"
+	SEMICOLON                     Type = ";"
+	COMMA                         Type = ","
+	ASSIGN                        Type = "="
+	QUESTION                      Type = "?"
+	COLON                         Type = ":"
+	DOT                           Type = "."
+	PLUS                          Type = "+"
+	MINUS                         Type = "-"
+	PLUS_PLUS                     Type = "++"
+	MINUS_MINUS                   Type = "--"
+	BIT_NOT                       Type = "~"
+	NOT                           Type = "!"
+	MULTIPLY                      Type = "*"
+	DIVIDE                        Type = "/"
+	MODULUS                       Type = "%"
+	RIGHT_SHIFT_ARITHMETIC        Type = ">>"
+	LEFT_SHIFT_ARITHMETIC         Type = "<<"
+	RIGHT_SHIFT_LOGICAL           Type = ">>>"
+	LESS_THAN                     Type = "<"
+	GREATER_THAN                  Type = ">"
+	LESS_THAN_OR_EQUAL            Type = "<="
+	GREATER_THAN_OR_EQUAL         Type = ">="
+	EQUAL                         Type = "=="
+	NOT_EQUAL                     Type = "!="
+	IDENTITY_EQUAL                Type = "==="
+	IDENTITY_NOT_EQUAL            Type = "!=="
+	BIT_AND                       Type = "&"
+	BIT_OR                        Type = "|"
+	AND                           Type = "&&"
+	OR                            Type = "||"
+	MULTIPLY_ASSIGN               Type = "*="
+	DIVIDE_ASSIGN                 Type = "%="
+	MODULUS_ASSIGN                Type = "%="
+	PLUS_ASSIGN                   Type = "+="
+	MINUS_ASSIGN                  Type = "-="
+	LEFT_SHIFT_ARITHMETIC_ASSIGN  Type = "<<="
+	RIGHT_SHIFT_ARITHMETIC_ASSIGN Type = ">>="
+	RIGHT_SHIFT_LOGICAL_ASSIGN    Type = ">>>="
+	BIT_AND_ASSIGN                Type = "&="
+	BIT_OR_ASSIGN                 Type = "|="
+	BIT_XOR_ASSIGN                Type = "^="
 )
 
-var (
-	EOF = New("EOF", "")
-
-	LEFT_PAREN    = New(KEYWORD, "(")
-	RIGHT_PAREN   = New(KEYWORD, ")")
-	LEFT_BRACKET  = New(KEYWORD, "[")
-	RIGHT_BRACKET = New(KEYWORD, "]")
-	LEFT_BRACE    = New(KEYWORD, "{")
-	RIGHT_BRACE   = New(KEYWORD, "}")
-	COMMA         = New(KEYWORD, ",")
-	PERIOD        = New(KEYWORD, ".")
-	COLON         = New(KEYWORD, ":")
-	SEMICOLON     = New(KEYWORD, ";")
-
-	PLUS                        = New(KEYWORD, "+")
-	MINUS                       = New(KEYWORD, "−")
-	MULTIPLE                    = New(KEYWORD, "*")
-	DIVIDE                      = New(KEYWORD, "/")
-	MODULO                      = New(KEYWORD, "％")
-	ASSIGN                      = New(KEYWORD, "＝")
-	LESS_THAN                   = New(KEYWORD, "＜")
-	GREATER_THAN                = New(KEYWORD, "＞")
-	NOT                         = New(KEYWORD, "!")
-	BIT_AND                     = New(KEYWORD, "&")
-	BIT_OR                      = New(KEYWORD, "|")
-	BIT_XOR                     = New(KEYWORD, "^")
-	BIT_NOT                     = New(KEYWORD, "~")
-	EQUAL                       = New(KEYWORD, "==")
-	NOT_EQUAL                   = New(KEYWORD, "!=")
-	LESS_THAN_EQUAL             = New(KEYWORD, "<=")
-	GREATER_THAN_EQUAL          = New(KEYWORD, ">=")
-	AND                         = New(KEYWORD, "&&")
-	OR                          = New(KEYWORD, "||")
-	LEFT_SHIFT                  = New(KEYWORD, "<<")
-	RIGHT_SHIFT                 = New(KEYWORD, ">>")
-	UNSIGNED_RIGHT_SHIFT        = New(KEYWORD, ">>>")
-	PLUS_ASSIGN                 = New(KEYWORD, "+=")
-	MINUS_ASSIGN                = New(KEYWORD, "-=")
-	MULTIPLE_ASSIGN             = New(KEYWORD, "*=")
-	DIVIDE_ASSIGN               = New(KEYWORD, "/=")
-	MODULO_ASSIGN               = New(KEYWORD, "%=")
-	BIT_AND_ASSIGN              = New(KEYWORD, "&=")
-	BIT_OR_ASSIGN               = New(KEYWORD, "|=")
-	BIT_XOR_ASSIGN              = New(KEYWORD, "^=")
-	LEFT_SHIFT_ASSIGN           = New(KEYWORD, "<<=")
-	RIGHT_SHIFT_ASSIGN          = New(KEYWORD, ">>=")
-	UNSIGNED_RIGHT_SHIFT_ASSIGN = New(KEYWORD, ">>>=")
-
-	TRUE      = New(BOOLEAN, "true")
-	FALSE     = New(BOOLEAN, "false")
-	NAN       = New(NUMBER, "NaN")
-	INFINITY  = New(NUMBER, "Infinity")
-	NULL      = New(KEYWORD, "null")
-	UNDEFINED = New(KEYWORD, "undefined")
-
-	IF       = New(KEYWORD, "if")
-	ELSE     = New(KEYWORD, "else")
-	WHILE    = New(KEYWORD, "while")
-	FOR      = New(KEYWORD, "for")
-	RETURN   = New(KEYWORD, "return")
-	BREAK    = New(KEYWORD, "break")
-	CONTINUE = New(KEYWORD, "continue")
-	SWITCH   = New(KEYWORD, "switch")
-	CASE     = New(KEYWORD, "case")
-	DEFAULT  = New(KEYWORD, "default")
-	TRY      = New(KEYWORD, "try")
-	CATCH    = New(KEYWORD, "catch")
-	FINALLY  = New(KEYWORD, "finally")
-	THROW    = New(KEYWORD, "throw")
-	NEW      = New(KEYWORD, "new")
-	DELETE   = New(KEYWORD, "delete")
-	IMPORT   = New(KEYWORD, "import")
-	EXPORT   = New(KEYWORD, "export")
-	EXTENDS  = New(KEYWORD, "extends")
-	SUPER    = New(KEYWORD, "super")
-	THIS     = New(KEYWORD, "this")
-	STATIC   = New(KEYWORD, "static")
-	YIELD    = New(KEYWORD, "yield")
-	AWAIT    = New(KEYWORD, "await")
-
-	VAR   = New(KEYWORD, "var")
-	LET   = New(KEYWORD, "let")
-	CONST = New(KEYWORD, "const")
-
-	FUNCTION  = New(KEYWORD, "function")
-	ASYNC     = New(KEYWORD, "async")
-	GENERATOR = New(KEYWORD, "generator")
-	ARGUMENTS = New(KEYWORD, "arguments")
-	SET       = New(KEYWORD, "set")
-	GET       = New(KEYWORD, "get")
-	ARROW     = New(KEYWORD, "=>")
-
-	TYPEOF     = New(KEYWORD, "typeof")
-	INSTANCEOF = New(KEYWORD, "instanceof")
-	IN         = New(KEYWORD, "in")
-	VOID       = New(KEYWORD, "void")
-
-	CLASS     = New(KEYWORD, "class")
-	INTERFACE = New(KEYWORD, "interface")
-	ENUM      = New(KEYWORD, "enum")
-	OPERATOR  = New(KEYWORD, "operator")
-)
-
-var keywords = []Token{
-	TRUE, FALSE, NAN, INFINITY, NULL, UNDEFINED,
-	IF, ELSE, WHILE, FOR, RETURN, BREAK, CONTINUE,
-	SWITCH, CASE, DEFAULT, TRY, CATCH, FINALLY,
-	THROW, NEW, DELETE, IMPORT, EXPORT, EXTENDS, SUPER,
-	THIS, STATIC, YIELD, AWAIT, VAR, LET, CONST,
-	FUNCTION, ASYNC, GENERATOR, ARGUMENTS, SET, GET,
-	ARROW, TYPEOF, INSTANCEOF, IN, VOID, CLASS,
-	INTERFACE, ENUM, OPERATOR,
-	LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET, RIGHT_BRACKET, LEFT_BRACE, RIGHT_BRACE,
-	COMMA, PERIOD, COLON, SEMICOLON,
-	PLUS, MINUS, MULTIPLE, DIVIDE, MODULO, ASSIGN,
-	LESS_THAN, GREATER_THAN, NOT, BIT_AND, BIT_OR, BIT_XOR,
-	BIT_NOT, EQUAL, NOT_EQUAL, LESS_THAN_EQUAL, GREATER_THAN_EQUAL,
-	AND, OR, LEFT_SHIFT, RIGHT_SHIFT, UNSIGNED_RIGHT_SHIFT,
-	PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLE_ASSIGN, DIVIDE_ASSIGN,
-	MODULO_ASSIGN, BIT_AND_ASSIGN, BIT_OR_ASSIGN, BIT_XOR_ASSIGN,
-	LEFT_SHIFT_ASSIGN, RIGHT_SHIFT_ASSIGN, UNSIGNED_RIGHT_SHIFT_ASSIGN,
+var reserved = []Type{
+	NULL, UNDEFINED, TRUE, FALSE,
+	BREAK, DO, INSTANCEOF, TYPEOF, CASE, ELSE, NEW, VAR, CATCH,
+	FINALLY, RETURN, VOID, CONTINUE, FOR, SWITCH, WHILE, DEBUGGER,
+	FUNCTION, THIS, WITH, DEFAULT, IF, THROW, DELETE, IN, TRY,
+	OPEN_BRACKET, CLOSE_BRACKET, OPEN_PAREN, CLOSE_PAREN,
+	OPEN_BRACE, CLOSE_BRACE, SEMICOLON, COMMA, ASSIGN, QUESTION,
+	COLON, DOT, PLUS, MINUS, PLUS_PLUS, MINUS_MINUS, BIT_NOT, NOT,
+	MULTIPLY, DIVIDE, MODULUS, RIGHT_SHIFT_ARITHMETIC,
+	LEFT_SHIFT_ARITHMETIC, RIGHT_SHIFT_LOGICAL, LESS_THAN,
+	GREATER_THAN, LESS_THAN_OR_EQUAL, GREATER_THAN_OR_EQUAL,
+	EQUAL, NOT_EQUAL, IDENTITY_EQUAL, IDENTITY_NOT_EQUAL,
+	BIT_AND, BIT_OR, AND, OR, MULTIPLY_ASSIGN, DIVIDE_ASSIGN,
+	MODULUS_ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN,
+	LEFT_SHIFT_ARITHMETIC_ASSIGN, RIGHT_SHIFT_ARITHMETIC_ASSIGN,
+	RIGHT_SHIFT_LOGICAL_ASSIGN, BIT_AND_ASSIGN, BIT_OR_ASSIGN,
+	BIT_XOR_ASSIGN,
 }
 
 var types = map[string]Type{}
 
 func init() {
-	for _, keyword := range keywords {
-		types[keyword.Literal] = keyword.Kind()
+	for _, t := range reserved {
+		types[string(t)] = t
 	}
 }
 
@@ -157,13 +133,6 @@ func TypeOf(literal string) Type {
 
 func New(typ Type, literal string) Token {
 	return Token{Type: typ, Literal: literal}
-}
-
-func (t Token) Kind() Type {
-	if t.Type == KEYWORD {
-		return Type(t.Literal)
-	}
-	return t.Type
 }
 
 func (t Token) String() string {

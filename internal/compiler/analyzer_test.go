@@ -13,164 +13,164 @@ import (
 func TestAnalyzer_Analyze(t *testing.T) {
 	tests := []struct {
 		node ast.Node
-		meta *Meta
+		meta *Semantic
 	}{
 		{
 			node: ast.NewProgram(),
-			meta: &Meta{Kind: interpreter.KindVoid},
+			meta: &Semantic{Kind: interpreter.KindVoid},
 		},
 		{
 			node: ast.NewEmptyStatement(),
-			meta: &Meta{Kind: interpreter.KindVoid},
+			meta: &Semantic{Kind: interpreter.KindVoid},
 		},
 		{
 			node: ast.NewBlockStatement(),
-			meta: &Meta{Kind: interpreter.KindVoid},
+			meta: &Semantic{Kind: interpreter.KindVoid},
 		},
 		{
 			node: ast.NewExpressionStatement(
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
-			meta: &Meta{Kind: interpreter.KindVoid},
+			meta: &Semantic{Kind: interpreter.KindVoid},
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
-			meta: &Meta{Kind: interpreter.KindInt32},
+			meta: &Semantic{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.5"}, 1.5),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
-			meta: &Meta{Kind: interpreter.KindInt32},
+			meta: &Semantic{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindInt32},
+			meta: &Semantic{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Meta{Kind: interpreter.KindString},
+			meta: &Semantic{Kind: interpreter.KindString},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindInt32},
+			meta: &Semantic{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MULTIPLE,
+				token.New(token.MULTIPLY, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindInt32},
+			meta: &Semantic{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MULTIPLE,
+				token.New(token.MULTIPLY, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MULTIPLE,
+				token.New(token.MULTIPLY, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.DIVIDE,
+				token.New(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.DIVIDE,
+				token.New(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 2),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.DIVIDE,
+				token.New(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MODULO,
+				token.New(token.MODULUS, "%"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MODULO,
+				token.New(token.MODULUS, "%"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 2),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MODULO,
+				token.New(token.MODULUS, "%"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Meta{Kind: interpreter.KindFloat64},
+			meta: &Semantic{Kind: interpreter.KindFloat64},
 		},
 	}
 

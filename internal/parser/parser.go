@@ -28,51 +28,53 @@ const (
 	LOWEST
 	SUM
 	PRODUCT
-	MODULO
+	MODULUS
 	PREFIX
 	CALL
 	HIGHEST
 )
 
-var precedences = map[string]int{
-	token.PLUS.Literal:       SUM,
-	token.MINUS.Literal:      SUM,
-	token.MULTIPLE.Literal:   PRODUCT,
-	token.DIVIDE.Literal:     PRODUCT,
-	token.MODULO.Literal:     MODULO,
-	token.LEFT_PAREN.Literal: MODULO,
+var precedences = map[token.Type]int{
+	token.PLUS:       SUM,
+	token.MINUS:      SUM,
+	token.MULTIPLY:   PRODUCT,
+	token.DIVIDE:     PRODUCT,
+	token.MODULUS:    MODULUS,
+	token.OPEN_PAREN: MODULUS,
 }
 
 func New(lexer *lexer.Lexer) *Parser {
-	p := &Parser{lexer: lexer, tokens: [3]token.Token{
-		token.EOF,
-		lexer.Next(),
-		lexer.Next(),
-	}}
-
+	p := &Parser{
+		lexer: lexer,
+		tokens: [3]token.Token{
+			token.New(token.EOF, ""),
+			lexer.Next(),
+			lexer.Next(),
+		},
+	}
 	p.prefix = map[token.Type]func() (ast.Expression, error){
-		token.NUMBER:            p.numberLiteral,
-		token.STRING:            p.stringLiteral,
-		token.BOOLEAN:           p.boolLiteral,
-		token.IDENTIFIER:        p.identifierLiteral,
-		token.PLUS.Kind():       p.prefixExpression,
-		token.MINUS.Kind():      p.prefixExpression,
-		token.LEFT_PAREN.Kind(): p.groupedExpression,
+		token.NUMBER:     p.numberLiteral,
+		token.STRING:     p.stringLiteral,
+		token.TRUE:       p.boolLiteral,
+		token.FALSE:      p.boolLiteral,
+		token.IDENTIFIER: p.identifierLiteral,
+		token.PLUS:       p.prefixExpression,
+		token.MINUS:      p.prefixExpression,
+		token.OPEN_PAREN: p.groupedExpression,
 	}
 	p.infix = map[token.Type]func(ast.Expression) (ast.Expression, error){
-		token.PLUS.Kind():     p.infixExpression,
-		token.MINUS.Kind():    p.infixExpression,
-		token.MULTIPLE.Kind(): p.infixExpression,
-		token.DIVIDE.Kind():   p.infixExpression,
-		token.MODULO.Kind():   p.infixExpression,
+		token.PLUS:     p.infixExpression,
+		token.MINUS:    p.infixExpression,
+		token.MULTIPLY: p.infixExpression,
+		token.DIVIDE:   p.infixExpression,
+		token.MODULUS:  p.infixExpression,
 	}
-
 	return p
 }
 
 func (p *Parser) Parse() (*ast.Program, error) {
 	program := &ast.Program{}
-	for p.peek(CURR) != token.EOF {
+	for p.peek(CURR).Type != token.EOF {
 		stmt, err := p.statement()
 		if err != nil {
 			return nil, err
@@ -83,28 +85,28 @@ func (p *Parser) Parse() (*ast.Program, error) {
 }
 
 func (p *Parser) statement() (ast.Statement, error) {
-	if p.peek(CURR) == token.SEMICOLON {
+	switch p.peek(CURR).Type {
+	case token.SEMICOLON:
 		p.pop()
 		return ast.NewEmptyStatement(), nil
-	}
-	if p.peek(CURR) == token.LEFT_BRACE {
+	case token.OPEN_BRACE:
 		return p.blockStatement()
+	default:
+		exp, err := p.expression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
+		if p.peek(CURR).Type == token.SEMICOLON {
+			p.pop()
+		}
+		return ast.NewExpressionStatement(exp), nil
 	}
-
-	exp, err := p.expression(LOWEST)
-	if err != nil {
-		return nil, err
-	}
-	if p.peek(CURR) == token.SEMICOLON {
-		p.pop()
-	}
-	return ast.NewExpressionStatement(exp), nil
 }
 
 func (p *Parser) expression(precedence int) (ast.Expression, error) {
-	prefix, ok := p.prefix[p.peek(CURR).Kind()]
+	prefix, ok := p.prefix[p.peek(CURR).Type]
 	if !ok {
-		return nil, fmt.Errorf("no prefix expression function for %s", p.peek(CURR).Kind())
+		return nil, fmt.Errorf("no prefix expression function for %s", p.peek(CURR).Type)
 	}
 
 	left, err := prefix()
@@ -112,10 +114,10 @@ func (p *Parser) expression(precedence int) (ast.Expression, error) {
 		return nil, err
 	}
 
-	for p.peek(CURR) != token.SEMICOLON && precedence < p.precedence(CURR) {
-		infix, ok := p.infix[p.peek(CURR).Kind()]
+	for p.precedence(CURR) > precedence {
+		infix, ok := p.infix[p.peek(CURR).Type]
 		if !ok {
-			return left, nil
+			break
 		}
 		left, err = infix(left)
 		if err != nil {
@@ -129,19 +131,15 @@ func (p *Parser) numberLiteral() (ast.Expression, error) {
 	curr := p.peek(CURR)
 	p.pop()
 
-	if curr.Literal == "NaN" || curr.Literal == "Infinity" {
-		return ast.NewNumberLiteral(curr, 0), nil
-	}
-
 	lit := curr.Literal
 	base := 10
 	if strings.HasPrefix(lit, "0b") || strings.HasPrefix(lit, "0B") {
 		base = 2
 		lit = lit[2:]
-	} else if strings.HasPrefix(lit, "0o") || strings.HasPrefix(lit, "0O") { // 8진수 (0o)
+	} else if strings.HasPrefix(lit, "0o") || strings.HasPrefix(lit, "0O") {
 		base = 8
 		lit = lit[2:]
-	} else if strings.HasPrefix(lit, "0x") || strings.HasPrefix(lit, "0X") { // 16진수 (0x)
+	} else if strings.HasPrefix(lit, "0x") || strings.HasPrefix(lit, "0X") {
 		base = 16
 		lit = lit[2:]
 	}
@@ -160,6 +158,7 @@ func (p *Parser) numberLiteral() (ast.Expression, error) {
 		}
 		value = float64(parsedValue)
 	}
+
 	return ast.NewNumberLiteral(curr, value), nil
 }
 
@@ -185,12 +184,12 @@ func (p *Parser) blockStatement() (ast.Statement, error) {
 	p.pop()
 
 	var statements []ast.Statement
-	for p.peek(CURR) != token.RIGHT_BRACE {
-		if node, err := p.statement(); err != nil {
+	for p.peek(CURR).Type != token.CLOSE_BRACE {
+		stmt, err := p.statement()
+		if err != nil {
 			return nil, err
-		} else {
-			statements = append(statements, node)
 		}
+		statements = append(statements, stmt)
 	}
 
 	p.pop()
@@ -222,32 +221,29 @@ func (p *Parser) infixExpression(left ast.Expression) (ast.Expression, error) {
 
 func (p *Parser) groupedExpression() (ast.Expression, error) {
 	p.pop()
-
 	n, err := p.expression(LOWEST)
 	if err != nil {
 		return nil, err
 	}
 
-	if p.peek(NEXT) != token.RIGHT_PAREN {
-		return nil, fmt.Errorf("expected next token to be %s, got %s instead", token.RIGHT_PAREN, p.peek(NEXT).Kind())
+	if p.peek(CURR).Type != token.CLOSE_PAREN {
+		return nil, fmt.Errorf("expected next token to be %s, got %s instead", token.CLOSE_PAREN, p.peek(CURR).Type)
 	}
-
 	p.pop()
 	return n, nil
 }
 
 func (p *Parser) precedence(i int) int {
 	peek := p.peek(i)
-	precedence, ok := precedences[peek.Literal]
-	if !ok {
-		return LOWEST
+	if precedence, ok := precedences[peek.Type]; ok {
+		return precedence
 	}
-	return precedence
+	return LOWEST
 }
 
 func (p *Parser) peek(i int) token.Token {
 	if i >= len(p.tokens) {
-		return token.EOF
+		return token.New(token.EOF, "")
 	}
 	return p.tokens[i]
 }

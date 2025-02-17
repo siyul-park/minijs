@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 
@@ -41,12 +40,7 @@ func runFile(filePath string, printBytecode bool) {
 	}
 	defer file.Close()
 
-	data, err := io.ReadAll(file)
-	if err != nil {
-		log.Fatal("Error reading file: ", err)
-	}
-
-	l := lexer.New(string(data))
+	l := lexer.New(file)
 	p := parser.New(l)
 
 	program, err := p.Parse()

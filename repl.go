@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/siyul-park/minijs/internal/bytecode"
 	"github.com/siyul-park/minijs/internal/compiler"
@@ -53,7 +54,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 
 		line := scanner.Text()
 
-		l := lexer.New(line)
+		l := lexer.New(strings.NewReader(line))
 		p := parser.New(l)
 
 		program, err := p.Parse()

@@ -19,12 +19,6 @@ func (b *Bytecode) Add(instructions ...Instruction) int {
 	return offset
 }
 
-func (b *Bytecode) Replace(offset int, instruction Instruction) {
-	for i := 0; i < len(instruction) && offset+i < len(b.Instructions); i++ {
-		b.Instructions[offset+i] = instruction[i]
-	}
-}
-
 func (b *Bytecode) Store(constants []byte) int {
 	offset := len(b.Constants)
 	b.Constants = append(b.Constants, constants...)

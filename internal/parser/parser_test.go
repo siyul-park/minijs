@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/siyul-park/minijs/internal/ast"
@@ -35,14 +36,14 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
-						token.PLUS,
+						token.New(token.PLUS, "+"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 					),
 				),
 				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
-						token.PLUS,
+						token.New(token.PLUS, "+"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "c"), "c"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "d"), "d"),
 					),
@@ -93,7 +94,7 @@ func TestParser_Parse(t *testing.T) {
 			"true",
 			ast.NewProgram(
 				ast.NewExpressionStatement(
-					ast.NewBoolLiteral(token.New(token.BOOLEAN, "true"), true),
+					ast.NewBoolLiteral(token.New(token.TRUE, "true"), true),
 				),
 			),
 		},
@@ -118,7 +119,7 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewExpressionStatement(
 					ast.NewPrefixExpression(
-						token.MINUS,
+						token.New(token.MINUS, "-"),
 						ast.NewNumberLiteral(token.New(token.NUMBER, "1"), 1),
 					),
 				),
@@ -129,7 +130,7 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
-						token.PLUS,
+						token.New(token.PLUS, "+"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
 						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 					),
@@ -141,9 +142,9 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
-						token.PLUS,
+						token.New(token.PLUS, "+"),
 						ast.NewInfixExpression(
-							token.PLUS,
+							token.New(token.PLUS, "+"),
 							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
 							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 						),
@@ -157,9 +158,9 @@ func TestParser_Parse(t *testing.T) {
 			ast.NewProgram(
 				ast.NewExpressionStatement(
 					ast.NewInfixExpression(
-						token.PLUS,
+						token.New(token.PLUS, "+"),
 						ast.NewInfixExpression(
-							token.MULTIPLE,
+							token.New(token.MULTIPLY, "*"),
 							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
 							ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
 						),
@@ -172,7 +173,7 @@ func TestParser_Parse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.source, func(t *testing.T) {
-			l := lexer.New(tt.source)
+			l := lexer.New(strings.NewReader(tt.source))
 			p := New(l)
 			program, err := p.Parse()
 			assert.NoError(t, err)

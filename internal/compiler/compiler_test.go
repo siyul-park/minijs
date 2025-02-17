@@ -53,7 +53,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
 			instructions: []bytecode.Instruction{
@@ -62,7 +62,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
 			instructions: []bytecode.Instruction{
@@ -73,7 +73,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
@@ -85,7 +85,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -98,7 +98,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
@@ -112,7 +112,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
@@ -124,7 +124,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MULTIPLE,
+				token.New(token.MULTIPLY, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
@@ -136,7 +136,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.DIVIDE,
+				token.New(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
@@ -157,7 +157,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 			),
 			instructions: []bytecode.Instruction{
@@ -166,7 +166,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 			),
 			instructions: []bytecode.Instruction{
@@ -177,7 +177,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -189,7 +189,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
@@ -203,7 +203,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -215,7 +215,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MULTIPLE,
+				token.New(token.MULTIPLY, "*"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -227,7 +227,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.DIVIDE,
+				token.New(token.DIVIDE, "/"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -239,7 +239,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MODULO,
+				token.New(token.MODULUS, "%"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
@@ -259,7 +259,7 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.PLUS,
+				token.New(token.PLUS, "+"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "bar"}, "bar"),
 			),
@@ -271,15 +271,15 @@ func TestCompiler_Compile(t *testing.T) {
 			literals: []string{"foo", "bar"},
 		},
 		{
-			node: ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+			node: ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.BLOAD, 1),
 			},
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.PLUS,
-				ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+				token.New(token.PLUS, "+"),
+				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.BLOAD, 1),
@@ -288,8 +288,8 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewPrefixExpression(
-				token.MINUS,
-				ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+				token.New(token.MINUS, "-"),
+				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.BLOAD, 1),
@@ -300,9 +300,9 @@ func TestCompiler_Compile(t *testing.T) {
 		},
 		{
 			node: ast.NewInfixExpression(
-				token.MINUS,
+				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1.0),
-				ast.NewBoolLiteral(token.Token{Type: token.BOOLEAN, Literal: "true"}, true),
+				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
 			),
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),

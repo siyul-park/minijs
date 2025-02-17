@@ -9,23 +9,23 @@ import (
 )
 
 type Analyzer struct {
-	meta map[ast.Node]*Meta
+	semantic map[ast.Node]*Semantic
 }
 
-type Meta struct {
+type Semantic struct {
 	Kind interpreter.Kind
 }
 
 func NewAnalyzer() *Analyzer {
-	return &Analyzer{meta: make(map[ast.Node]*Meta)}
+	return &Analyzer{semantic: make(map[ast.Node]*Semantic)}
 }
 
-func (a *Analyzer) Analyze(node ast.Node) *Meta {
-	if meta, found := a.meta[node]; found {
-		return meta
+func (a *Analyzer) Analyze(node ast.Node) *Semantic {
+	if sem, found := a.semantic[node]; found {
+		return sem
 	}
 
-	var meta *Meta
+	var meta *Semantic
 	switch node := node.(type) {
 	case *ast.Program:
 		meta = a.program(node)
@@ -49,45 +49,45 @@ func (a *Analyzer) Analyze(node ast.Node) *Meta {
 		meta = nil
 	}
 
-	a.meta[node] = meta
+	a.semantic[node] = meta
 	return meta
 }
 
 func (a *Analyzer) Close() {
-	a.meta = make(map[ast.Node]*Meta)
+	a.semantic = make(map[ast.Node]*Semantic)
 }
 
-func (a *Analyzer) program(node *ast.Program) *Meta {
+func (a *Analyzer) program(node *ast.Program) *Semantic {
 	for _, stmt := range node.Statements {
 		a.Analyze(stmt)
 	}
-	return &Meta{Kind: interpreter.KindVoid}
+	return &Semantic{Kind: interpreter.KindVoid}
 }
 
-func (a *Analyzer) emptyStatement(_ *ast.EmptyStatement) *Meta {
-	return &Meta{Kind: interpreter.KindVoid}
+func (a *Analyzer) emptyStatement(_ *ast.EmptyStatement) *Semantic {
+	return &Semantic{Kind: interpreter.KindVoid}
 }
 
-func (a *Analyzer) blockStatement(node *ast.BlockStatement) *Meta {
+func (a *Analyzer) blockStatement(node *ast.BlockStatement) *Semantic {
 	for _, stmt := range node.Statements {
 		a.Analyze(stmt)
 	}
-	return &Meta{Kind: interpreter.KindVoid}
+	return &Semantic{Kind: interpreter.KindVoid}
 }
 
-func (a *Analyzer) expressionStatement(node *ast.ExpressionStatement) *Meta {
+func (a *Analyzer) expressionStatement(node *ast.ExpressionStatement) *Semantic {
 	a.Analyze(node.Expression)
-	return &Meta{Kind: interpreter.KindVoid}
+	return &Semantic{Kind: interpreter.KindVoid}
 }
 
-func (a *Analyzer) prefixExpression(node *ast.PrefixExpression) *Meta {
+func (a *Analyzer) prefixExpression(node *ast.PrefixExpression) *Semantic {
 	right := a.Analyze(node.Right)
 	if right == nil {
 		return nil
 	}
 
 	kind := interpreter.KindUnknown
-	switch node.Token {
+	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
 		switch right.Kind {
 		case interpreter.KindBool:
@@ -100,15 +100,15 @@ func (a *Analyzer) prefixExpression(node *ast.PrefixExpression) *Meta {
 		}
 	default:
 	}
-	return &Meta{Kind: kind}
+	return &Semantic{Kind: kind}
 }
 
-func (a *Analyzer) infixExpression(node *ast.InfixExpression) *Meta {
+func (a *Analyzer) infixExpression(node *ast.InfixExpression) *Semantic {
 	left := a.Analyze(node.Left)
 	right := a.Analyze(node.Right)
 
 	kind := interpreter.KindUnknown
-	switch node.Token {
+	switch node.Token.Type {
 	case token.PLUS:
 		if left.Kind == interpreter.KindString || right.Kind == interpreter.KindString {
 			kind = interpreter.KindString
@@ -117,7 +117,7 @@ func (a *Analyzer) infixExpression(node *ast.InfixExpression) *Meta {
 		} else {
 			kind = interpreter.KindInt32
 		}
-	case token.DIVIDE, token.MODULO:
+	case token.DIVIDE, token.MODULUS:
 		kind = interpreter.KindFloat64
 	default:
 		if left.Kind == interpreter.KindInt32 && right.Kind == interpreter.KindInt32 {
@@ -126,23 +126,23 @@ func (a *Analyzer) infixExpression(node *ast.InfixExpression) *Meta {
 			kind = interpreter.KindFloat64
 		}
 	}
-	return &Meta{Kind: kind}
+	return &Semantic{Kind: kind}
 }
 
-func (a *Analyzer) boolLiteral(_ *ast.BoolLiteral) *Meta {
-	return &Meta{Kind: interpreter.KindBool}
+func (a *Analyzer) boolLiteral(_ *ast.BoolLiteral) *Semantic {
+	return &Semantic{Kind: interpreter.KindBool}
 }
 
-func (a *Analyzer) numberLiteral(node *ast.NumberLiteral) *Meta {
+func (a *Analyzer) numberLiteral(node *ast.NumberLiteral) *Semantic {
 	kind := interpreter.KindInt32
 	if strings.Contains(node.Token.Literal, ".") || strings.Contains(node.Token.Literal, "e") {
 		kind = interpreter.KindFloat64
 	} else if node.Value != float64(int32(node.Value)) {
 		kind = interpreter.KindFloat64
 	}
-	return &Meta{Kind: kind}
+	return &Semantic{Kind: kind}
 }
 
-func (a *Analyzer) stringLiteral(_ *ast.StringLiteral) *Meta {
-	return &Meta{Kind: interpreter.KindString}
+func (a *Analyzer) stringLiteral(_ *ast.StringLiteral) *Semantic {
+	return &Semantic{Kind: interpreter.KindString}
 }
