@@ -12,61 +12,61 @@ import (
 
 func TestAnalyzer_Analyze(t *testing.T) {
 	tests := []struct {
-		node ast.Node
-		meta *Semantic
+		node   ast.Node
+		symbol *Symbol
 	}{
 		{
-			node: ast.NewProgram(),
-			meta: &Semantic{Kind: interpreter.KindVoid},
+			node:   ast.NewProgram(),
+			symbol: &Symbol{Kind: interpreter.KindVoid},
 		},
 		{
-			node: ast.NewEmptyStatement(),
-			meta: &Semantic{Kind: interpreter.KindVoid},
+			node:   ast.NewEmptyStatement(),
+			symbol: &Symbol{Kind: interpreter.KindVoid},
 		},
 		{
-			node: ast.NewBlockStatement(),
-			meta: &Semantic{Kind: interpreter.KindVoid},
+			node:   ast.NewBlockStatement(),
+			symbol: &Symbol{Kind: interpreter.KindVoid},
 		},
 		{
 			node: ast.NewExpressionStatement(
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
-			meta: &Semantic{Kind: interpreter.KindVoid},
+			symbol: &Symbol{Kind: interpreter.KindVoid},
 		},
 		{
 			node: ast.NewPrefixExpression(
 				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
-			meta: &Semantic{Kind: interpreter.KindInt32},
+			symbol: &Symbol{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewPrefixExpression(
 				token.New(token.PLUS, "+"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.5"}, 1.5),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewPrefixExpression(
 				token.New(token.PLUS, "+"),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "foo"}, "foo"),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewPrefixExpression(
 				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
-			meta: &Semantic{Kind: interpreter.KindInt32},
+			symbol: &Symbol{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewPrefixExpression(
 				token.New(token.MINUS, "-"),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -74,7 +74,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindInt32},
+			symbol: &Symbol{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -82,7 +82,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -90,7 +90,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Semantic{Kind: interpreter.KindString},
+			symbol: &Symbol{Kind: interpreter.KindString},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -98,7 +98,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindInt32},
+			symbol: &Symbol{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -106,7 +106,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindInt32},
+			symbol: &Symbol{Kind: interpreter.KindInt32},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -114,7 +114,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -122,7 +122,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -130,7 +130,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -138,7 +138,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 2),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -146,7 +146,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -154,7 +154,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -162,7 +162,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 2),
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "2.0"}, 2),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 		{
 			node: ast.NewInfixExpression(
@@ -170,7 +170,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 				ast.NewStringLiteral(token.Token{Type: token.STRING, Literal: "2"}, "2"),
 			),
-			meta: &Semantic{Kind: interpreter.KindFloat64},
+			symbol: &Symbol{Kind: interpreter.KindFloat64},
 		},
 	}
 
@@ -178,8 +178,8 @@ func TestAnalyzer_Analyze(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.node.String(), func(t *testing.T) {
-			meta := analyzer.Analyze(tt.node)
-			assert.Equal(t, tt.meta, meta)
+			sb := analyzer.analyze(tt.node)
+			assert.Equal(t, tt.symbol, sb)
 		})
 	}
 }

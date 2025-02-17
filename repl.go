@@ -91,7 +91,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 			}
 
 			code.Instructions = nil
-			code.Add(insts...)
+			code.Emit(insts...)
 		}
 
 		if err := i.Execute(code); err != nil {

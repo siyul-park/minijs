@@ -216,7 +216,7 @@ func TestInterpreter_Execute(t *testing.T) {
 
 	for _, tt := range tests {
 		var code bytecode.Bytecode
-		code.Add(tt.instructions...)
+		code.Emit(tt.instructions...)
 		for _, c := range tt.constants {
 			code.Store([]byte(c + "\x00"))
 		}
@@ -436,7 +436,7 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 
 	for _, tt := range tests {
 		var code bytecode.Bytecode
-		code.Add(tt.instructions...)
+		code.Emit(tt.instructions...)
 		for _, c := range tt.constants {
 			code.Store([]byte(c + "\x00"))
 		}

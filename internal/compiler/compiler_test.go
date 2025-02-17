@@ -319,7 +319,7 @@ func TestCompiler_Compile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.node.String(), func(t *testing.T) {
 			code := bytecode.Bytecode{}
-			code.Add(tt.instructions...)
+			code.Emit(tt.instructions...)
 			for _, c := range tt.literals {
 				code.Store([]byte(c + "\x00"))
 			}

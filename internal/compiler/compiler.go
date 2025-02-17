@@ -57,8 +57,8 @@ func New() *Compiler {
 }
 
 func (c *Compiler) Compile(node ast.Node) (bytecode.Bytecode, error) {
-	defer c.analyzer.Close()
 	defer c.context.reset()
+	defer c.analyzer.Clear()
 
 	err := c.compile(node)
 	code := c.context.code
@@ -121,20 +121,20 @@ func (c *Compiler) expressionStatement(node *ast.ExpressionStatement) error {
 }
 
 func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
-	meta := c.analyzer.Analyze(node)
+	sb := c.analyzer.Analyze(node)
 	right := c.analyzer.Analyze(node.Right)
 
 	if err := c.compile(node.Right); err != nil {
 		return err
 	}
-	if err := c.cast(right.Kind, meta.Kind); err != nil {
+	if err := c.cast(right.Kind, sb.Kind); err != nil {
 		return err
 	}
 
 	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
 		if node.Token.Type == token.MINUS {
-			switch meta.Kind {
+			switch sb.Kind {
 			case interpreter.KindInt32:
 				c.emit(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF))
 				c.emit(bytecode.I32MUL)
@@ -150,25 +150,25 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
 }
 
 func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
-	meta := c.analyzer.Analyze(node)
+	sb := c.analyzer.Analyze(node)
 	left := c.analyzer.Analyze(node.Left)
 	right := c.analyzer.Analyze(node.Right)
 
 	if err := c.compile(node.Left); err != nil {
 		return err
 	}
-	if err := c.cast(left.Kind, meta.Kind); err != nil {
+	if err := c.cast(left.Kind, sb.Kind); err != nil {
 		return err
 	}
 
 	if err := c.compile(node.Right); err != nil {
 		return err
 	}
-	if err := c.cast(right.Kind, meta.Kind); err != nil {
+	if err := c.cast(right.Kind, sb.Kind); err != nil {
 		return err
 	}
 
-	switch meta.Kind {
+	switch sb.Kind {
 	case interpreter.KindInt32:
 		switch node.Token.Type {
 		case token.PLUS:
@@ -226,8 +226,8 @@ func (c *Compiler) numberLiteral(node *ast.NumberLiteral) error {
 	case "Infinity":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.Inf(1)))
 	default:
-		meta := c.analyzer.Analyze(node)
-		if meta.Kind == interpreter.KindInt32 {
+		sb := c.analyzer.analyze(node)
+		if sb.Kind == interpreter.KindInt32 {
 			c.emit(bytecode.I32LOAD, uint64(int32(node.Value)))
 		} else {
 			c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
@@ -261,7 +261,7 @@ func (c *Compiler) cast(from, to interpreter.Kind) error {
 
 		if insns := casts[curr.kind][to]; len(insns) > 0 {
 			for _, insn := range append(curr.instructions, insns...) {
-				c.context.code.Add(insn)
+				c.context.code.Emit(insn)
 			}
 			return nil
 		}
@@ -284,7 +284,7 @@ func (c *Compiler) cast(from, to interpreter.Kind) error {
 }
 
 func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) int {
-	return c.context.code.Add(bytecode.New(op, operands...))
+	return c.context.code.Emit(bytecode.New(op, operands...))
 }
 
 func (c *Compiler) store(val string) (int, int) {

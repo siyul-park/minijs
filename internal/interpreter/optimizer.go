@@ -36,7 +36,7 @@ func (o *Optimizer) Optimize(code bytecode.Bytecode) (bytecode.Bytecode, error) 
 
 	code.Instructions = nil
 	code.Constants = consts
-	code.Add(insts...)
+	code.Emit(insts...)
 	return code, nil
 }
 
@@ -69,7 +69,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 				switch inst.Opcode() {
 				case bytecode.I32TOB:
 					code := bytecode.Bytecode{Constants: consts}
-					code.Add(operand, inst)
+					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
 					}
@@ -80,7 +80,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 					insts[i] = bytecode.New(bytecode.BLOAD, uint64(val))
 				case bytecode.BTOI32, bytecode.F64TOI32, bytecode.CTOI32:
 					code := bytecode.Bytecode{Constants: consts}
-					code.Add(operand, inst)
+					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
 					}
@@ -91,7 +91,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 					insts[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
 				case bytecode.I32TOF64, bytecode.CTOF64:
 					code := bytecode.Bytecode{Constants: consts}
-					code.Add(operand, inst)
+					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
 					}
@@ -102,7 +102,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 					insts[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
 				case bytecode.BTOC, bytecode.I32TOC, bytecode.F64TOC:
 					code := bytecode.Bytecode{Constants: consts}
-					code.Add(operand, inst)
+					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
 					}
@@ -147,7 +147,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 					switch inst.Opcode() {
 					case bytecode.I32ADD, bytecode.I32SUB, bytecode.I32MUL, bytecode.I32DIV, bytecode.I32MOD:
 						code := bytecode.Bytecode{Constants: consts}
-						code.Add(operand2, operand1, inst)
+						code.Emit(operand2, operand1, inst)
 						if err := o.interpreter.Execute(code); err != nil {
 							return nil, nil, err
 						}
@@ -159,7 +159,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 						insts[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
 					case bytecode.F64ADD, bytecode.F64SUB, bytecode.F64MUL, bytecode.F64DIV, bytecode.F64MOD:
 						code := bytecode.Bytecode{Constants: consts}
-						code.Add(operand2, operand1, inst)
+						code.Emit(operand2, operand1, inst)
 						if err := o.interpreter.Execute(code); err != nil {
 							return nil, nil, err
 						}
@@ -171,7 +171,7 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 						insts[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
 					case bytecode.CADD:
 						code := bytecode.Bytecode{Constants: consts}
-						code.Add(operand2, operand1, inst)
+						code.Emit(operand2, operand1, inst)
 						if err := o.interpreter.Execute(code); err != nil {
 							return nil, nil, err
 						}

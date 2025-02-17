@@ -11,7 +11,7 @@ type Bytecode struct {
 	Constants    []byte
 }
 
-func (b *Bytecode) Add(instructions ...Instruction) int {
+func (b *Bytecode) Emit(instructions ...Instruction) int {
 	offset := len(b.Instructions)
 	for _, instruction := range instructions {
 		b.Instructions = append(b.Instructions, instruction...)

@@ -43,7 +43,7 @@ func NewStringLiteral(tok token.Token, value string) *StringLiteral {
 }
 
 func (n *StringLiteral) String() string {
-	return n.Token.Literal
+	return "\"" + n.Token.Literal + "\""
 }
 
 type IdentifierLiteral struct {

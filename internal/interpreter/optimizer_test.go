@@ -221,13 +221,13 @@ func TestOptimizer_Optimize(t *testing.T) {
 
 	for _, tt := range tests {
 		commands := bytecode.Bytecode{}
-		commands.Add(tt.commands...)
+		commands.Emit(tt.commands...)
 		for _, c := range tt.literals {
 			commands.Store([]byte(c + "\x00"))
 		}
 
 		expected := bytecode.Bytecode{}
-		expected.Add(tt.expected...)
+		expected.Emit(tt.expected...)
 
 		t.Run(commands.String(), func(t *testing.T) {
 			acturl, err := optimizer.Optimize(commands)
