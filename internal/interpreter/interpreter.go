@@ -56,103 +56,103 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			i.pop()
 		case bytecode.BLOAD:
 			val := binary.BigEndian.Uint32(insns[frame.ip+1:])
-			i.push(Bool(val))
+			i.bpush(Bool(val))
 			frame.ip += 4
 		case bytecode.BTOI32:
-			val, _ := i.pop().(Bool)
-			i.push(Int32(val))
+			val := i.bpop()
+			i.i32push(Int32(val))
 		case bytecode.BTOC:
-			val, _ := i.pop().(Bool)
-			i.push(String(val.String()))
+			val := i.bpop()
+			i.cpush(String(val.String()))
 		case bytecode.I32LOAD:
 			val := Int32(binary.BigEndian.Uint32(insns[frame.ip+1:]))
-			i.push(val)
+			i.i32push(val)
 			frame.ip += 4
 		case bytecode.I32ADD:
-			val2, _ := i.pop().(Int32)
-			val1, _ := i.pop().(Int32)
-			i.push(val1 + val2)
+			val2 := i.i32pop()
+			val1 := i.i32pop()
+			i.i32push(val1 + val2)
 		case bytecode.I32SUB:
-			val2, _ := i.pop().(Int32)
-			val1, _ := i.pop().(Int32)
-			i.push(val1 - val2)
+			val2 := i.i32pop()
+			val1 := i.i32pop()
+			i.i32push(val1 - val2)
 		case bytecode.I32MUL:
-			val2, _ := i.pop().(Int32)
-			val1, _ := i.pop().(Int32)
-			i.push(val1 * val2)
+			val2 := i.i32pop()
+			val1 := i.i32pop()
+			i.i32push(val1 * val2)
 		case bytecode.I32DIV:
-			val2, _ := i.pop().(Int32)
-			val1, _ := i.pop().(Int32)
-			i.push(val1 / val2)
+			val2 := i.i32pop()
+			val1 := i.i32pop()
+			i.i32push(val1 / val2)
 		case bytecode.I32MOD:
-			val2, _ := i.pop().(Int32)
-			val1, _ := i.pop().(Int32)
-			i.push(val1 % val2)
+			val2 := i.i32pop()
+			val1 := i.i32pop()
+			i.i32push(val1 % val2)
 		case bytecode.I32TOB:
-			val, _ := i.pop().(Int32)
+			val := i.i32pop()
 			if val > 0 {
 				val = 1
 			}
-			i.push(Bool(val))
+			i.bpush(Bool(val))
 		case bytecode.I32TOF64:
-			val, _ := i.pop().(Int32)
-			i.push(Float64(val))
+			val := i.i32pop()
+			i.f64push(Float64(val))
 		case bytecode.I32TOC:
-			val, _ := i.pop().(Int32)
-			i.push(String(val.String()))
+			val := i.i32pop()
+			i.cpush(String(val.String()))
 		case bytecode.F64LOAD:
 			val := Float64(math.Float64frombits(binary.BigEndian.Uint64(insns[frame.ip+1:])))
-			i.push(val)
+			i.f64push(val)
 			frame.ip += 8
 		case bytecode.F64ADD:
-			val2, _ := i.pop().(Float64)
-			val1, _ := i.pop().(Float64)
-			i.push(val1 + val2)
+			val2 := i.f64pop()
+			val1 := i.f64pop()
+			i.f64push(val1 + val2)
 		case bytecode.F64SUB:
-			val2, _ := i.pop().(Float64)
-			val1, _ := i.pop().(Float64)
-			i.push(val1 - val2)
+			val2 := i.f64pop()
+			val1 := i.f64pop()
+			i.f64push(val1 - val2)
 		case bytecode.F64MUL:
-			val2, _ := i.pop().(Float64)
-			val1, _ := i.pop().(Float64)
-			i.push(val1 * val2)
+			val2 := i.f64pop()
+			val1 := i.f64pop()
+			i.f64push(val1 * val2)
 		case bytecode.F64DIV:
-			val2, _ := i.pop().(Float64)
-			val1, _ := i.pop().(Float64)
-			i.push(val1 / val2)
+			val2 := i.f64pop()
+			val1 := i.f64pop()
+			i.f64push(val1 / val2)
 		case bytecode.F64MOD:
-			val2, _ := i.pop().(Float64)
-			val1, _ := i.pop().(Float64)
-			i.push(Float64(math.Mod(float64(val1), float64(val2))))
+			val2 := i.f64pop()
+			val1 := i.f64pop()
+			i.f64push(Float64(math.Mod(float64(val1), float64(val2))))
 		case bytecode.F64TOI32:
-			val, _ := i.pop().(Float64)
-			i.push(Int32(val))
+			val := i.f64pop()
+			i.i32push(Int32(val))
 		case bytecode.F64TOC:
-			val, _ := i.pop().(Float64)
-			i.push(String(val.String()))
+			val := i.f64pop()
+			i.cpush(String(val.String()))
 		case bytecode.CLOAD:
 			offset := int(binary.BigEndian.Uint32(insns[frame.ip+1:]))
 			size := int(binary.BigEndian.Uint32(insns[frame.ip+5:]))
-			i.push(String(consts[offset : offset+size]))
+			i.cpush(String(consts[offset : offset+size]))
 			frame.ip += 8
 		case bytecode.CADD:
-			val2, _ := i.pop().(String)
-			val1, _ := i.pop().(String)
-			i.push(val1 + val2)
-		case bytecode.CTOF64:
-			val, _ := i.pop().(String)
-			f, err := strconv.ParseFloat(string(val), 64)
-			if err != nil {
-				f = math.NaN()
-			}
-			i.push(Float64(f))
+			val2 := i.cpop()
+			val1 := i.cpop()
+			i.cpush(val1 + val2)
 		case bytecode.CTOI32:
-			val, _ := i.pop().(String)
+			val := i.cpop()
 			n, err := strconv.Atoi(string(val))
 			if err != nil {
 				n = 0
 			}
-			i.push(Int32(n))
+			i.i32push(Int32(n))
+		case bytecode.CTOF64:
+			val := i.cpop()
+			f, err := strconv.ParseFloat(string(val), 64)
+			if err != nil {
+				f = math.NaN()
+			}
+			i.f64push(Float64(f))
 		default:
 			typ := bytecode.TypeOf(opcode)
 			if typ == nil {
@@ -160,10 +160,6 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			}
 			return fmt.Errorf("unknown opcode: %v", typ.Mnemonic)
 		}
-
-		frame = i.frame()
-		insns = frame.Instructions()
-		consts = frame.Constants()
 	}
 	return nil
 }
@@ -189,62 +185,125 @@ func (i *Interpreter) exit() {
 	i.fp--
 }
 
-func (i *Interpreter) push(val Value) {
+func (i *Interpreter) resize() {
 	if len(i.stack) <= i.sp {
 		stack := make([]mark, i.sp*2)
 		copy(stack, i.stack)
 		i.stack = stack
 	}
-
-	kind := val.Kind()
-	ref := mark{kind: kind}
-
-	switch val := val.(type) {
-	case Bool:
-		ref.pointer = uint64(val)
-	case Int32:
-		ref.pointer = uint64(val)
-	case Float64:
-		ref.pointer = math.Float64bits(float64(val))
-	default:
-		index := -1
-		if len(i.free) > 0 {
-			index = int(i.free[len(i.free)-1])
-			i.free = i.free[:len(i.free)-1]
-		}
-
-		if index >= 0 {
-			i.heap[index] = val
-		} else {
-			i.heap = append(i.heap, val)
-			index = len(i.heap) - 1
-		}
-
-		ref.pointer = uint64(index)
-	}
-
-	i.stack[i.sp] = ref
-	i.sp++
 }
 
 func (i *Interpreter) pop() Value {
 	if i.sp == 0 {
 		return nil
 	}
+	m := i.stack[i.sp-1]
+	switch m.kind {
+	case KindBool:
+		return i.bpop()
+	case KindInt32:
+		return i.i32pop()
+	case KindFloat64:
+		return i.f64pop()
+	default:
+		return i.hpop()
+	}
+}
+
+func (i *Interpreter) bpush(val Bool) {
+	i.resize()
+	i.stack[i.sp] = mark{
+		kind:    KindBool,
+		pointer: uint64(val),
+	}
+	i.sp++
+}
+
+func (i *Interpreter) bpop() Bool {
+	if i.sp == 0 {
+		return 0
+	}
+	i.sp--
+	m := i.stack[i.sp]
+	return Bool(m.pointer)
+}
+
+func (i *Interpreter) i32push(val Int32) {
+	i.resize()
+	i.stack[i.sp] = mark{
+		kind:    KindInt32,
+		pointer: uint64(val),
+	}
+	i.sp++
+}
+
+func (i *Interpreter) i32pop() Int32 {
+	if i.sp == 0 {
+		return 0
+	}
+	i.sp--
+	m := i.stack[i.sp]
+	return Int32(m.pointer)
+}
+
+func (i *Interpreter) f64push(val Float64) {
+	i.resize()
+	i.stack[i.sp] = mark{
+		kind:    KindFloat64,
+		pointer: math.Float64bits(float64(val)),
+	}
+	i.sp++
+}
+
+func (i *Interpreter) f64pop() Float64 {
+	if i.sp == 0 {
+		return 0.0
+	}
+	i.sp--
+	m := i.stack[i.sp]
+	return Float64(math.Float64frombits(m.pointer))
+}
+
+func (i *Interpreter) cpush(val String) {
+	i.hpush(val)
+}
+
+func (i *Interpreter) cpop() String {
+	val, _ := i.hpop().(String)
+	return val
+}
+
+func (i *Interpreter) hpush(val Value) {
+	i.resize()
+
+	index := -1
+	if len(i.free) > 0 {
+		index = int(i.free[len(i.free)-1])
+		i.free = i.free[:len(i.free)-1]
+	}
+
+	if index >= 0 {
+		i.heap[index] = val
+	} else {
+		i.heap = append(i.heap, val)
+		index = len(i.heap) - 1
+	}
+
+	i.stack[i.sp] = mark{
+		kind:    val.Kind(),
+		pointer: uint64(index),
+	}
+	i.sp++
+}
+
+func (i *Interpreter) hpop() Value {
+	if i.sp == 0 {
+		return nil
+	}
 
 	i.sp--
-	ref := i.stack[i.sp]
-
-	switch ref.kind {
-	case KindBool:
-		return Bool(ref.pointer)
-	case KindInt32:
-		return Int32(ref.pointer)
-	case KindFloat64:
-		return Float64(math.Float64frombits(ref.pointer))
-	default:
-		v := i.heap[ref.pointer]
-		i.free = append(i.free, ref.pointer)
-		return v
-	}
+	m := i.stack[i.sp]
+	v := i.heap[m.pointer]
+	i.free = append(i.free, m.pointer)
+	return v
 }

@@ -3,6 +3,7 @@ package compiler
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/siyul-park/minijs/internal/ast"
 	"github.com/siyul-park/minijs/internal/bytecode"
@@ -11,12 +12,8 @@ import (
 )
 
 type Compiler struct {
-	analyzer *Analyzer
-	context  *compileContext
-}
-
-type compileContext struct {
 	code     bytecode.Bytecode
+	kinds    map[ast.Node]interpreter.Kind
 	literals map[string]int
 }
 
@@ -49,48 +46,49 @@ var casts = map[interpreter.Kind]map[interpreter.Kind][]bytecode.Instruction{
 
 func New() *Compiler {
 	c := &Compiler{
-		analyzer: NewAnalyzer(),
-		context:  &compileContext{},
+		kinds:    make(map[ast.Node]interpreter.Kind),
+		literals: make(map[string]int),
 	}
-	c.context.reset()
 	return c
 }
 
 func (c *Compiler) Compile(node ast.Node) (bytecode.Bytecode, error) {
-	defer c.context.reset()
-	defer c.analyzer.Clear()
+	defer func() {
+		c.code = bytecode.Bytecode{}
+		c.kinds = make(map[ast.Node]interpreter.Kind)
+		c.literals = make(map[string]int)
+	}()
 
 	err := c.compile(node)
-	code := c.context.code
-	return code, err
+	return c.code, err
 }
 
 func (c *Compiler) compile(node ast.Node) error {
 	switch node := node.(type) {
 	case *ast.Program:
-		return c.program(node)
+		return c.compileProgram(node)
 	case *ast.EmptyStatement:
-		return c.emptyStatement(node)
+		return c.compileEmptyStatement(node)
 	case *ast.BlockStatement:
-		return c.blockStatement(node)
+		return c.compileBlockStatement(node)
 	case *ast.ExpressionStatement:
-		return c.expressionStatement(node)
+		return c.compileExpressionStatement(node)
 	case *ast.PrefixExpression:
-		return c.prefixExpression(node)
+		return c.compilePrefixExpression(node)
 	case *ast.InfixExpression:
-		return c.infixExpression(node)
+		return c.compileInfixExpression(node)
 	case *ast.BoolLiteral:
-		return c.boolLiteral(node)
+		return c.compileBoolLiteral(node)
 	case *ast.NumberLiteral:
-		return c.numberLiteral(node)
+		return c.compileNumberLiteral(node)
 	case *ast.StringLiteral:
-		return c.stringLiteral(node)
+		return c.compileStringLiteral(node)
 	default:
 		return fmt.Errorf("unsupported operand type: %T", node)
 	}
 }
 
-func (c *Compiler) program(node *ast.Program) error {
+func (c *Compiler) compileProgram(node *ast.Program) error {
 	for _, n := range node.Statements {
 		if err := c.compile(n); err != nil {
 			return err
@@ -99,11 +97,11 @@ func (c *Compiler) program(node *ast.Program) error {
 	return nil
 }
 
-func (c *Compiler) emptyStatement(_ *ast.EmptyStatement) error {
+func (c *Compiler) compileEmptyStatement(_ *ast.EmptyStatement) error {
 	return nil
 }
 
-func (c *Compiler) blockStatement(node *ast.BlockStatement) error {
+func (c *Compiler) compileBlockStatement(node *ast.BlockStatement) error {
 	for _, n := range node.Statements {
 		if err := c.compile(n); err != nil {
 			return err
@@ -112,7 +110,7 @@ func (c *Compiler) blockStatement(node *ast.BlockStatement) error {
 	return nil
 }
 
-func (c *Compiler) expressionStatement(node *ast.ExpressionStatement) error {
+func (c *Compiler) compileExpressionStatement(node *ast.ExpressionStatement) error {
 	if err := c.compile(node.Expression); err != nil {
 		return err
 	}
@@ -120,21 +118,21 @@ func (c *Compiler) expressionStatement(node *ast.ExpressionStatement) error {
 	return nil
 }
 
-func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
-	sb := c.analyzer.Analyze(node)
-	right := c.analyzer.Analyze(node.Right)
+func (c *Compiler) compilePrefixExpression(node *ast.PrefixExpression) error {
+	kind := c.getKind(node)
+	right := c.getKind(node.Right)
 
 	if err := c.compile(node.Right); err != nil {
 		return err
 	}
-	if err := c.cast(right.Kind, sb.Kind); err != nil {
+	if err := c.cast(right, kind); err != nil {
 		return err
 	}
 
 	switch node.Token.Type {
 	case token.PLUS, token.MINUS:
 		if node.Token.Type == token.MINUS {
-			switch sb.Kind {
+			switch kind {
 			case interpreter.KindInt32:
 				c.emit(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF))
 				c.emit(bytecode.I32MUL)
@@ -146,29 +144,29 @@ func (c *Compiler) prefixExpression(node *ast.PrefixExpression) error {
 		}
 		return nil
 	}
-	return fmt.Errorf("unsupported operator '%s' for types %v", node.Token.Type, right.Kind)
+	return fmt.Errorf("unsupported operator '%s' for types %v", node.Token.Type, right)
 }
 
-func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
-	sb := c.analyzer.Analyze(node)
-	left := c.analyzer.Analyze(node.Left)
-	right := c.analyzer.Analyze(node.Right)
+func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
+	kind := c.getKind(node)
+	left := c.getKind(node.Left)
+	right := c.getKind(node.Right)
 
 	if err := c.compile(node.Left); err != nil {
 		return err
 	}
-	if err := c.cast(left.Kind, sb.Kind); err != nil {
+	if err := c.cast(left, kind); err != nil {
 		return err
 	}
 
 	if err := c.compile(node.Right); err != nil {
 		return err
 	}
-	if err := c.cast(right.Kind, sb.Kind); err != nil {
+	if err := c.cast(right, kind); err != nil {
 		return err
 	}
 
-	switch sb.Kind {
+	switch kind {
 	case interpreter.KindInt32:
 		switch node.Token.Type {
 		case token.PLUS:
@@ -207,10 +205,10 @@ func (c *Compiler) infixExpression(node *ast.InfixExpression) error {
 		}
 	default:
 	}
-	return fmt.Errorf("unsupported operator '%s' for types %v and %v", node.Token.Type, left.Kind, right.Kind)
+	return fmt.Errorf("unsupported operator '%s' for types %v and %v", node.Token.Type, left, right)
 }
 
-func (c *Compiler) boolLiteral(node *ast.BoolLiteral) error {
+func (c *Compiler) compileBoolLiteral(node *ast.BoolLiteral) error {
 	value := uint64(0)
 	if node.Value {
 		value = 1
@@ -219,15 +217,14 @@ func (c *Compiler) boolLiteral(node *ast.BoolLiteral) error {
 	return nil
 }
 
-func (c *Compiler) numberLiteral(node *ast.NumberLiteral) error {
+func (c *Compiler) compileNumberLiteral(node *ast.NumberLiteral) error {
 	switch node.Token.Literal {
 	case "NaN":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.NaN()))
 	case "Infinity":
 		c.emit(bytecode.F64LOAD, math.Float64bits(math.Inf(1)))
 	default:
-		sb := c.analyzer.analyze(node)
-		if sb.Kind == interpreter.KindInt32 {
+		if c.getKind(node) == interpreter.KindInt32 {
 			c.emit(bytecode.I32LOAD, uint64(int32(node.Value)))
 		} else {
 			c.emit(bytecode.F64LOAD, math.Float64bits(node.Value))
@@ -236,10 +233,92 @@ func (c *Compiler) numberLiteral(node *ast.NumberLiteral) error {
 	return nil
 }
 
-func (c *Compiler) stringLiteral(node *ast.StringLiteral) error {
-	offset, size := c.store(node.Value)
+func (c *Compiler) compileStringLiteral(node *ast.StringLiteral) error {
+	offset, size := c.intern(node.Value)
 	c.emit(bytecode.CLOAD, uint64(offset), uint64(size))
 	return nil
+}
+
+func (c *Compiler) getKind(node ast.Expression) interpreter.Kind {
+	if kind, found := c.kinds[node]; found {
+		return kind
+	}
+
+	var kind interpreter.Kind
+	switch node := node.(type) {
+	case *ast.PrefixExpression:
+		kind = c.getPrefixKind(node)
+	case *ast.InfixExpression:
+		kind = c.getInfixKind(node)
+	case *ast.BoolLiteral:
+		kind = interpreter.KindBool
+	case *ast.NumberLiteral:
+		kind = c.getNumberLiteralKind(node)
+	case *ast.StringLiteral:
+		kind = interpreter.KindString
+	default:
+		kind = interpreter.KindUnknown
+	}
+
+	c.kinds[node] = kind
+	return kind
+}
+
+func (c *Compiler) getPrefixKind(node *ast.PrefixExpression) interpreter.Kind {
+	right := c.getKind(node.Right)
+	switch node.Token.Type {
+	case token.PLUS, token.MINUS:
+		return c.getPrefixOperatorKind(right)
+	}
+	return interpreter.KindUnknown
+}
+
+func (c *Compiler) getPrefixOperatorKind(right interpreter.Kind) interpreter.Kind {
+	switch right {
+	case interpreter.KindBool:
+		return interpreter.KindInt32
+	case interpreter.KindString:
+		return interpreter.KindFloat64
+	case interpreter.KindInt32, interpreter.KindFloat64:
+		return right
+	default:
+		return interpreter.KindUnknown
+	}
+}
+
+func (c *Compiler) getInfixKind(node *ast.InfixExpression) interpreter.Kind {
+	left := c.getKind(node.Left)
+	right := c.getKind(node.Right)
+
+	if left == interpreter.KindUnknown || right == interpreter.KindUnknown {
+		return interpreter.KindUnknown
+	}
+
+	switch node.Token.Type {
+	case token.PLUS:
+		if left == interpreter.KindString || right == interpreter.KindString {
+			return interpreter.KindString
+		} else if left == interpreter.KindFloat64 || right == interpreter.KindFloat64 {
+			return interpreter.KindFloat64
+		}
+		return interpreter.KindInt32
+	case token.DIVIDE, token.MODULUS:
+		return interpreter.KindFloat64
+	default:
+		if left == interpreter.KindInt32 && right == interpreter.KindInt32 {
+			return interpreter.KindInt32
+		}
+		return interpreter.KindFloat64
+	}
+}
+
+func (c *Compiler) getNumberLiteralKind(node *ast.NumberLiteral) interpreter.Kind {
+	if strings.Contains(node.Token.Literal, ".") || strings.Contains(node.Token.Literal, "e") {
+		return interpreter.KindFloat64
+	} else if node.Value != float64(int32(node.Value)) {
+		return interpreter.KindFloat64
+	}
+	return interpreter.KindInt32
 }
 
 func (c *Compiler) cast(from, to interpreter.Kind) error {
@@ -261,7 +340,7 @@ func (c *Compiler) cast(from, to interpreter.Kind) error {
 
 		if insns := casts[curr.kind][to]; len(insns) > 0 {
 			for _, insn := range append(curr.instructions, insns...) {
-				c.context.code.Emit(insn)
+				c.code.Emit(insn)
 			}
 			return nil
 		}
@@ -284,19 +363,14 @@ func (c *Compiler) cast(from, to interpreter.Kind) error {
 }
 
 func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) int {
-	return c.context.code.Emit(bytecode.New(op, operands...))
+	return c.code.Emit(bytecode.New(op, operands...))
 }
 
-func (c *Compiler) store(val string) (int, int) {
-	offset, ok := c.context.literals[val]
+func (c *Compiler) intern(val string) (int, int) {
+	offset, ok := c.literals[val]
 	if !ok {
-		offset = c.context.code.Store([]byte(val + "\x00"))
-		c.context.literals[val] = offset
+		offset = c.code.Store([]byte(val + "\x00"))
+		c.literals[val] = offset
 	}
 	return offset, len([]byte(val))
-}
-
-func (c *compileContext) reset() {
-	c.literals = make(map[string]int)
-	c.code = bytecode.Bytecode{}
 }

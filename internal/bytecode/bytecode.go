@@ -19,13 +19,7 @@ func (b *Bytecode) Emit(instructions ...Instruction) int {
 	return offset
 }
 
-func (b *Bytecode) Store(constants []byte) int {
-	offset := len(b.Constants)
-	b.Constants = append(b.Constants, constants...)
-	return offset
-}
-
-func (b *Bytecode) Instruction(offset int) (Instruction, int) {
+func (b *Bytecode) Fetch(offset int) (Instruction, int) {
 	if offset >= len(b.Instructions) {
 		return nil, 0
 	}
@@ -37,6 +31,12 @@ func (b *Bytecode) Instruction(offset int) (Instruction, int) {
 	return b.Instructions[offset : offset+width], width
 }
 
+func (b *Bytecode) Store(constants []byte) int {
+	offset := len(b.Constants)
+	b.Constants = append(b.Constants, constants...)
+	return offset
+}
+
 func (b *Bytecode) String() string {
 	var out strings.Builder
 
@@ -46,7 +46,7 @@ func (b *Bytecode) String() string {
 
 	offset := 0
 	for offset < len(b.Instructions) {
-		bytecode, read := b.Instruction(offset)
+		bytecode, read := b.Fetch(offset)
 		if read == 0 {
 			break
 		}

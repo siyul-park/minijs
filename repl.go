@@ -81,7 +81,7 @@ func (r *REPL) Start(reader io.Reader, writer io.Writer) error {
 
 		var insts []bytecode.Instruction
 		for offset := 0; offset < len(code.Instructions); {
-			inst, size := code.Instruction(offset)
+			inst, size := code.Fetch(offset)
 			insts = append(insts, inst)
 			offset += size
 		}
