@@ -5,10 +5,38 @@ import (
 	"strconv"
 )
 
+type Undefined struct{}
+
+func (Undefined) Type() Type {
+	return UNDEFINED
+}
+
+func (Undefined) Interface() any {
+	return nil
+}
+
+func (Undefined) String() string {
+	return "undefined"
+}
+
+type Null struct{}
+
+func (Null) Type() Type {
+	return NULL
+}
+
+func (Null) Interface() any {
+	return nil
+}
+
+func (Null) String() string {
+	return "null"
+}
+
 type Bool int32
 
-func (b Bool) Kind() Kind {
-	return KindBool
+func (b Bool) Type() Type {
+	return BOOL
 }
 
 func (b Bool) Interface() any {
@@ -21,8 +49,8 @@ func (b Bool) String() string {
 
 type Int32 int32
 
-func (i Int32) Kind() Kind {
-	return KindInt32
+func (i Int32) Type() Type {
+	return INT32
 }
 
 func (i Int32) Interface() any {
@@ -35,8 +63,8 @@ func (i Int32) String() string {
 
 type Float64 float64
 
-func (f Float64) Kind() Kind {
-	return KindFloat64
+func (f Float64) Type() Type {
+	return FLOAT64
 }
 
 func (f Float64) Interface() any {
@@ -58,8 +86,8 @@ func (f Float64) String() string {
 
 type String string
 
-func (s String) Kind() Kind {
-	return KindString
+func (s String) Type() Type {
+	return STRING
 }
 
 func (s String) Interface() any {

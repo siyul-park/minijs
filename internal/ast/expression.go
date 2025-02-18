@@ -56,3 +56,22 @@ func (n *InfixExpression) String() string {
 	out.WriteString(")")
 	return out.String()
 }
+
+type AssignmentExpression struct {
+	expression
+	Token token.Token
+	Left  Expression
+	Right Expression
+}
+
+func NewAssignmentExpression(token token.Token, left Expression, right Expression) *AssignmentExpression {
+	return &AssignmentExpression{Token: token, Left: left, Right: right}
+}
+
+func (n *AssignmentExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString(n.Left.String())
+	out.WriteString(n.Token.Literal)
+	out.WriteString(n.Right.String())
+	return out.String()
+}

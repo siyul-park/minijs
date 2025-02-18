@@ -1,34 +1,42 @@
 package interpreter
 
 type Value interface {
-	Kind() Kind
+	Type() Type
 	Interface() any
-	String() string
 }
 
-type Kind byte
+type Type byte
 
 const (
-	KindUnknown Kind = iota
-	KindVoid
-	KindBool
-	KindInt32
-	KindFloat64
-	KindString
+	UNKNOWN Type = iota
+	VOID
+	UNDEFINED
+	NULL
+	BOOL
+	INT32
+	FLOAT64
+	STRING
+	OBJECT
 )
 
-func (k Kind) String() string {
-	switch k {
-	case KindVoid:
+func (t Type) String() string {
+	switch t {
+	case VOID:
 		return "void"
-	case KindBool:
+	case UNDEFINED:
+		return "undefined"
+	case NULL:
+		return "null"
+	case BOOL:
 		return "bool"
-	case KindInt32:
+	case INT32:
 		return "int32"
-	case KindFloat64:
+	case FLOAT64:
 		return "float64"
-	case KindString:
+	case STRING:
 		return "string"
+	case OBJECT:
+		return "object"
 	default:
 		return "<invalid>"
 	}

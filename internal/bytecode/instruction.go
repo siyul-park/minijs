@@ -19,9 +19,15 @@ const (
 	NOP Opcode = iota
 	POP
 
-	BLOAD
-	BTOI32
-	BTOC
+	GLBLOAD
+	CTXLOAD
+
+	OBJSET
+	OBJGET
+
+	BLLOAD
+	BLTOI32
+	BLTOSTR
 
 	I32LOAD
 	I32MUL
@@ -29,9 +35,9 @@ const (
 	I32SUB
 	I32DIV
 	I32MOD
-	I32TOB
+	I32TOBL
 	I32TOF64
-	I32TOC
+	I32TOSTR
 
 	F64LOAD
 	F64ADD
@@ -40,21 +46,27 @@ const (
 	F64DIV
 	F64MOD
 	F64TOI32
-	F64TOC
+	F64TOSTR
 
-	CLOAD
-	CADD
-	CTOI32
-	CTOF64
+	STRLOAD
+	STRADD
+	STRTOI32
+	STRTOF64
 )
 
 var types = map[Opcode]*Type{
 	NOP: {Mnemonic: "nop"},
 	POP: {Mnemonic: "pop"},
 
-	BLOAD:  {Mnemonic: "bload", Widths: []int{4}},
-	BTOI32: {Mnemonic: "btoi32"},
-	BTOC:   {Mnemonic: "btoc"},
+	GLBLOAD: {Mnemonic: "glbload"},
+	CTXLOAD: {Mnemonic: "ctxload"},
+
+	OBJSET: {Mnemonic: "objset"},
+	OBJGET: {Mnemonic: "objget"},
+
+	BLLOAD:  {Mnemonic: "blload", Widths: []int{1}},
+	BLTOI32: {Mnemonic: "bltoi32"},
+	BLTOSTR: {Mnemonic: "bltostr"},
 
 	I32LOAD:  {Mnemonic: "i32load", Widths: []int{4}},
 	I32MUL:   {Mnemonic: "i32mul"},
@@ -62,9 +74,9 @@ var types = map[Opcode]*Type{
 	I32SUB:   {Mnemonic: "i32sub"},
 	I32DIV:   {Mnemonic: "i32div"},
 	I32MOD:   {Mnemonic: "i32mod"},
-	I32TOB:   {Mnemonic: "i32tob"},
+	I32TOBL:  {Mnemonic: "i32tobl"},
 	I32TOF64: {Mnemonic: "i32tof64"},
-	I32TOC:   {Mnemonic: "i32toc"},
+	I32TOSTR: {Mnemonic: "i32tostr"},
 
 	F64LOAD:  {Mnemonic: "f64load", Widths: []int{8}},
 	F64ADD:   {Mnemonic: "f64add"},
@@ -73,12 +85,12 @@ var types = map[Opcode]*Type{
 	F64DIV:   {Mnemonic: "f64div"},
 	F64MOD:   {Mnemonic: "f64mod"},
 	F64TOI32: {Mnemonic: "f64toi32"},
-	F64TOC:   {Mnemonic: "f64toc"},
+	F64TOSTR: {Mnemonic: "f64tostr"},
 
-	CLOAD:  {Mnemonic: "cload", Widths: []int{4, 4}},
-	CADD:   {Mnemonic: "cadd"},
-	CTOI32: {Mnemonic: "ctoi32"},
-	CTOF64: {Mnemonic: "ctof64"},
+	STRLOAD:  {Mnemonic: "strload", Widths: []int{4, 4}},
+	STRADD:   {Mnemonic: "stradd"},
+	STRTOI32: {Mnemonic: "strtoi32"},
+	STRTOF64: {Mnemonic: "strtof64"},
 }
 
 func TypeOf(op Opcode) *Type {

@@ -49,18 +49,16 @@ minijs --print-bytecode
 ```bash
 > 'b'+'a'+ +'a'+'a'
 section .text:
-        global _main
-
-_main:
-        cload 0x00000000 0x00000001
-        cload 0x00000002 0x00000001
-        cadd
-        cload 0x00000002 0x00000001
-        ctof64
-        f64toc
-        cadd
-        cload 0x00000002 0x00000001
-        cadd
+        strload 0x00000000 0x00000001
+        strload 0x00000002 0x00000001
+        stradd
+        strload 0x00000002 0x00000002
+        strtof64
+        f64tostr
+        stradd
+        strload 0x00000002 0x00000002
+        stradd
+        pop
 
 .section .data:
         b
@@ -87,10 +85,7 @@ minijs -print-bytecode banana.js
 
 ```text
 section .text:
-        global _main
-
-_main:
-        cload 0x00000000 0x00000006
+        strload 0x00000000 0x00000006
         pop
 
 .section .data:

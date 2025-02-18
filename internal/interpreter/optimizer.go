@@ -18,57 +18,57 @@ func NewOptimizer() *Optimizer {
 }
 
 func (o *Optimizer) Optimize(code bytecode.Bytecode) (bytecode.Bytecode, error) {
-	consts := code.Constants
+	constants := code.Constants
 
-	var insts []bytecode.Instruction
+	var instructions []bytecode.Instruction
 	for offset := 0; offset < len(code.Instructions); {
 		inst, size := code.Fetch(offset)
-		insts = append(insts, inst)
+		instructions = append(instructions, inst)
 		offset += size
 	}
 
-	insts, consts, err := o.fusion(insts, consts)
+	instructions, constants, err := o.fusion(instructions, constants)
 	if err != nil {
 		return bytecode.Bytecode{}, err
 	}
 
-	insts, consts = o.compress(insts, consts)
+	instructions, constants = o.compress(instructions, constants)
 
 	code.Instructions = nil
-	code.Constants = consts
-	code.Emit(insts...)
+	code.Constants = constants
+	code.Emit(instructions...)
 	return code, nil
 }
 
-func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytecode.Instruction, []byte, error) {
-	offsets := map[string]int{}
-	for i := 0; i < len(insts); i++ {
-		inst := insts[i]
-		if inst.Opcode() == bytecode.CLOAD {
+func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte) ([]bytecode.Instruction, []byte, error) {
+	literals := map[string]int{}
+	for i := 0; i < len(instructions); i++ {
+		inst := instructions[i]
+		if inst.Opcode() == bytecode.STRLOAD {
 			offset := int(binary.BigEndian.Uint32(inst[1:]))
 			size := int(binary.BigEndian.Uint32(inst[5:]))
 
-			literal := string(consts[offset : offset+size])
-			offsets[literal] = offset
+			literal := string(constants[offset : offset+size])
+			literals[literal] = offset
 		}
 	}
 
-	for i := 0; i < len(insts); i++ {
-		inst := insts[i]
+	for i := 0; i < len(instructions); i++ {
+		inst := instructions[i]
 		if i > 0 {
 			j := i - 1
 			for ; j > 0; j-- {
-				if insts[j].Opcode() != bytecode.NOP {
+				if instructions[j].Opcode() != bytecode.NOP {
 					break
 				}
 			}
 
-			operand := insts[j]
+			operand := instructions[j]
 			switch operand.Opcode() {
-			case bytecode.BLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.CLOAD:
+			case bytecode.BLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
 				switch inst.Opcode() {
-				case bytecode.I32TOB:
-					code := bytecode.Bytecode{Constants: consts}
+				case bytecode.I32TOBL:
+					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
@@ -76,10 +76,10 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 					val, _ := o.interpreter.Pop().(Bool)
 
-					insts[j] = bytecode.New(bytecode.NOP)
-					insts[i] = bytecode.New(bytecode.BLOAD, uint64(val))
-				case bytecode.BTOI32, bytecode.F64TOI32, bytecode.CTOI32:
-					code := bytecode.Bytecode{Constants: consts}
+					instructions[j] = bytecode.New(bytecode.NOP)
+					instructions[i] = bytecode.New(bytecode.BLLOAD, uint64(val))
+				case bytecode.BLTOI32, bytecode.F64TOI32, bytecode.STRTOI32:
+					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
@@ -87,10 +87,10 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 					val, _ := o.interpreter.Pop().(Int32)
 
-					insts[j] = bytecode.New(bytecode.NOP)
-					insts[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
-				case bytecode.I32TOF64, bytecode.CTOF64:
-					code := bytecode.Bytecode{Constants: consts}
+					instructions[j] = bytecode.New(bytecode.NOP)
+					instructions[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
+				case bytecode.I32TOF64, bytecode.STRTOF64:
+					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
@@ -98,10 +98,10 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 					val, _ := o.interpreter.Pop().(Float64)
 
-					insts[j] = bytecode.New(bytecode.NOP)
-					insts[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
-				case bytecode.BTOC, bytecode.I32TOC, bytecode.F64TOC:
-					code := bytecode.Bytecode{Constants: consts}
+					instructions[j] = bytecode.New(bytecode.NOP)
+					instructions[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
+				case bytecode.BLTOSTR, bytecode.I32TOSTR, bytecode.F64TOSTR:
+					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
 						return nil, nil, err
@@ -109,15 +109,15 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 					val, _ := o.interpreter.Pop().(String)
 
-					offset, ok := offsets[string(val)]
+					offset, ok := literals[string(val)]
 					if !ok {
-						offset = len(consts)
-						consts = append(consts, []byte(string(val)+"\x00")...)
-						offsets[string(val)] = offset
+						offset = len(constants)
+						constants = append(constants, []byte(string(val)+"\x00")...)
+						literals[string(val)] = offset
 					}
 
-					insts[j] = bytecode.New(bytecode.NOP)
-					insts[i] = bytecode.New(bytecode.CLOAD, uint64(offset), uint64(len(val)))
+					instructions[j] = bytecode.New(bytecode.NOP)
+					instructions[i] = bytecode.New(bytecode.STRLOAD, uint64(offset), uint64(len(val)))
 				default:
 				}
 			default:
@@ -127,26 +127,26 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 		if i > 1 {
 			j := i - 1
 			for ; j > 0; j-- {
-				if insts[j].Opcode() != bytecode.NOP {
+				if instructions[j].Opcode() != bytecode.NOP {
 					break
 				}
 			}
 
 			k := j - 1
 			for ; k > 0; k-- {
-				if insts[k].Opcode() != bytecode.NOP {
+				if instructions[k].Opcode() != bytecode.NOP {
 					break
 				}
 			}
 
-			operand1 := insts[j]
-			operand2 := insts[k]
+			operand1 := instructions[j]
+			operand2 := instructions[k]
 			if operand1.Opcode() == operand2.Opcode() {
 				switch operand1.Opcode() {
-				case bytecode.BLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.CLOAD:
+				case bytecode.BLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
 					switch inst.Opcode() {
 					case bytecode.I32ADD, bytecode.I32SUB, bytecode.I32MUL, bytecode.I32DIV, bytecode.I32MOD:
-						code := bytecode.Bytecode{Constants: consts}
+						code := bytecode.Bytecode{Constants: constants}
 						code.Emit(operand2, operand1, inst)
 						if err := o.interpreter.Execute(code); err != nil {
 							return nil, nil, err
@@ -154,11 +154,11 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 						val, _ := o.interpreter.Pop().(Int32)
 
-						insts[k] = bytecode.New(bytecode.NOP)
-						insts[j] = bytecode.New(bytecode.NOP)
-						insts[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
+						instructions[k] = bytecode.New(bytecode.NOP)
+						instructions[j] = bytecode.New(bytecode.NOP)
+						instructions[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
 					case bytecode.F64ADD, bytecode.F64SUB, bytecode.F64MUL, bytecode.F64DIV, bytecode.F64MOD:
-						code := bytecode.Bytecode{Constants: consts}
+						code := bytecode.Bytecode{Constants: constants}
 						code.Emit(operand2, operand1, inst)
 						if err := o.interpreter.Execute(code); err != nil {
 							return nil, nil, err
@@ -166,11 +166,11 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 						val, _ := o.interpreter.Pop().(Float64)
 
-						insts[k] = bytecode.New(bytecode.NOP)
-						insts[j] = bytecode.New(bytecode.NOP)
-						insts[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
-					case bytecode.CADD:
-						code := bytecode.Bytecode{Constants: consts}
+						instructions[k] = bytecode.New(bytecode.NOP)
+						instructions[j] = bytecode.New(bytecode.NOP)
+						instructions[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
+					case bytecode.STRADD:
+						code := bytecode.Bytecode{Constants: constants}
 						code.Emit(operand2, operand1, inst)
 						if err := o.interpreter.Execute(code); err != nil {
 							return nil, nil, err
@@ -178,16 +178,16 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 
 						val, _ := o.interpreter.Pop().(String)
 
-						offset, ok := offsets[string(val)]
+						offset, ok := literals[string(val)]
 						if !ok {
-							offset = len(consts)
-							consts = append(consts, []byte(string(val)+"\x00")...)
-							offsets[string(val)] = offset
+							offset = len(constants)
+							constants = append(constants, []byte(string(val)+"\x00")...)
+							literals[string(val)] = offset
 						}
 
-						insts[k] = bytecode.New(bytecode.NOP)
-						insts[j] = bytecode.New(bytecode.NOP)
-						insts[i] = bytecode.New(bytecode.CLOAD, uint64(offset), uint64(len(val)))
+						instructions[k] = bytecode.New(bytecode.NOP)
+						instructions[j] = bytecode.New(bytecode.NOP)
+						instructions[i] = bytecode.New(bytecode.STRLOAD, uint64(offset), uint64(len(val)))
 					default:
 					}
 				default:
@@ -195,42 +195,42 @@ func (o *Optimizer) fusion(insts []bytecode.Instruction, consts []byte) ([]bytec
 			}
 		}
 	}
-	return insts, consts, nil
+	return instructions, constants, nil
 }
 
-func (o *Optimizer) compress(insts []bytecode.Instruction, consts []byte) ([]bytecode.Instruction, []byte) {
-	offsets := map[string]int{}
-	for i := 0; i < len(insts); i++ {
-		inst := insts[i]
-		if inst.Opcode() == bytecode.CLOAD {
+func (o *Optimizer) compress(instructions []bytecode.Instruction, constants []byte) ([]bytecode.Instruction, []byte) {
+	literals := map[string]int{}
+	for i := 0; i < len(instructions); i++ {
+		inst := instructions[i]
+		if inst.Opcode() == bytecode.STRLOAD {
 			offset := int(binary.BigEndian.Uint32(inst[1:]))
 			size := int(binary.BigEndian.Uint32(inst[5:]))
 
-			literal := string(consts[offset : offset+size])
-			offsets[literal] = offset
+			literal := string(constants[offset : offset+size])
+			literals[literal] = offset
 		}
 	}
 
-	compressed := make([]byte, 0, len(consts))
-	for literal := range offsets {
-		offsets[literal] = len(compressed)
+	compressed := make([]byte, 0, len(constants))
+	for literal := range literals {
+		literals[literal] = len(compressed)
 		compressed = append(compressed, []byte(literal+"\x00")...)
 	}
 
-	for i := 0; i < len(insts); i++ {
-		inst := insts[i]
-		if inst.Opcode() == bytecode.CLOAD {
+	for i := 0; i < len(instructions); i++ {
+		inst := instructions[i]
+		if inst.Opcode() == bytecode.STRLOAD {
 			offset := int(binary.BigEndian.Uint32(inst[1:]))
 			size := int(binary.BigEndian.Uint32(inst[5:]))
-			insts[i] = bytecode.New(bytecode.CLOAD, uint64(offsets[string(consts[offset:offset+size])]), uint64(size))
+			instructions[i] = bytecode.New(bytecode.STRLOAD, uint64(literals[string(constants[offset:offset+size])]), uint64(size))
 		}
 	}
 
-	for i := len(insts) - 1; i >= 0; i-- {
-		if insts[i].Opcode() == bytecode.NOP {
-			insts = append(insts[:i], insts[i+1:]...)
+	for i := len(instructions) - 1; i >= 0; i-- {
+		if instructions[i].Opcode() == bytecode.NOP {
+			instructions = append(instructions[:i], instructions[i+1:]...)
 		}
 	}
 
-	return insts, compressed
+	return instructions, compressed
 }

@@ -14,9 +14,15 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(NOP), expect: "nop"},
 		{instruction: New(POP), expect: "pop"},
 
-		{instruction: New(BLOAD, 0x01), expect: "bload 0x00000001"},
-		{instruction: New(BTOI32), expect: "btoi32"},
-		{instruction: New(BTOC), expect: "btoc"},
+		{instruction: New(GLBLOAD), expect: "glbload"},
+		{instruction: New(CTXLOAD), expect: "ctxload"},
+
+		{instruction: New(OBJSET), expect: "objset"},
+		{instruction: New(OBJGET), expect: "objget"},
+
+		{instruction: New(BLLOAD, 0x01), expect: "blload 0x01"},
+		{instruction: New(BLTOI32), expect: "bltoi32"},
+		{instruction: New(BLTOSTR), expect: "bltostr"},
 
 		{instruction: New(I32LOAD, 0x01), expect: "i32load 0x00000001"},
 		{instruction: New(I32MUL), expect: "i32mul"},
@@ -24,9 +30,9 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(I32SUB), expect: "i32sub"},
 		{instruction: New(I32DIV), expect: "i32div"},
 		{instruction: New(I32MOD), expect: "i32mod"},
-		{instruction: New(I32TOB), expect: "i32tob"},
+		{instruction: New(I32TOBL), expect: "i32tobl"},
 		{instruction: New(I32TOF64), expect: "i32tof64"},
-		{instruction: New(I32TOC), expect: "i32toc"},
+		{instruction: New(I32TOSTR), expect: "i32tostr"},
 
 		{instruction: New(F64LOAD, 0x01), expect: "f64load 0x0000000000000001"},
 		{instruction: New(F64ADD), expect: "f64add"},
@@ -35,12 +41,12 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(F64DIV), expect: "f64div"},
 		{instruction: New(F64MOD), expect: "f64mod"},
 		{instruction: New(F64TOI32), expect: "f64toi32"},
-		{instruction: New(F64TOC), expect: "f64toc"},
+		{instruction: New(F64TOSTR), expect: "f64tostr"},
 
-		{instruction: New(CLOAD, 0x01, 0x01), expect: "cload 0x00000001 0x00000001"},
-		{instruction: New(CADD), expect: "cadd"},
-		{instruction: New(CTOI32), expect: "ctoi32"},
-		{instruction: New(CTOF64), expect: "ctof64"},
+		{instruction: New(STRLOAD, 0x01, 0x01), expect: "strload 0x00000001 0x00000001"},
+		{instruction: New(STRADD), expect: "stradd"},
+		{instruction: New(STRTOI32), expect: "strtoi32"},
+		{instruction: New(STRTOF64), expect: "strtof64"},
 	}
 
 	for _, test := range tests {

@@ -26,6 +26,7 @@ const (
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN
 	SUM
 	PRODUCT
 	MODULUS
@@ -35,6 +36,7 @@ const (
 )
 
 var precedences = map[token.Type]int{
+	token.ASSIGN:     ASSIGN,
 	token.PLUS:       SUM,
 	token.MINUS:      SUM,
 	token.MULTIPLY:   PRODUCT,
@@ -68,6 +70,7 @@ func New(lexer *lexer.Lexer) *Parser {
 		token.MULTIPLY: p.infixExpression,
 		token.DIVIDE:   p.infixExpression,
 		token.MODULUS:  p.infixExpression,
+		token.ASSIGN:   p.assignmentExpression,
 	}
 	return p
 }
@@ -87,19 +90,13 @@ func (p *Parser) Parse() (*ast.Program, error) {
 func (p *Parser) statement() (ast.Statement, error) {
 	switch p.peek(CURR).Type {
 	case token.SEMICOLON:
-		p.pop()
-		return ast.NewEmptyStatement(), nil
+		return p.emptyStatement()
 	case token.OPEN_BRACE:
 		return p.blockStatement()
+	case token.VAR:
+		return p.variableStatement()
 	default:
-		exp, err := p.expression(LOWEST)
-		if err != nil {
-			return nil, err
-		}
-		if p.peek(CURR).Type == token.SEMICOLON {
-			p.pop()
-		}
-		return ast.NewExpressionStatement(exp), nil
+		return p.expressionStatement()
 	}
 }
 
@@ -180,6 +177,11 @@ func (p *Parser) identifierLiteral() (ast.Expression, error) {
 	return ast.NewIdentifierLiteral(curr, curr.Literal), nil
 }
 
+func (p *Parser) emptyStatement() (ast.Statement, error) {
+	p.pop()
+	return ast.NewEmptyStatement(), nil
+}
+
 func (p *Parser) blockStatement() (ast.Statement, error) {
 	p.pop()
 
@@ -194,6 +196,41 @@ func (p *Parser) blockStatement() (ast.Statement, error) {
 
 	p.pop()
 	return ast.NewBlockStatement(statements...), nil
+}
+
+func (p *Parser) expressionStatement() (ast.Statement, error) {
+	exp, err := p.expression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+	if p.peek(CURR).Type == token.SEMICOLON {
+		p.pop()
+	}
+	return ast.NewExpressionStatement(exp), nil
+}
+
+func (p *Parser) variableStatement() (ast.Statement, error) {
+	curr := p.peek(CURR)
+	p.pop()
+
+	var expressions []*ast.AssignmentExpression
+	for {
+		exp, err := p.expression(LOWEST)
+		if err != nil {
+			return nil, err
+		}
+		right, ok := exp.(*ast.AssignmentExpression)
+		if !ok {
+			return nil, fmt.Errorf("expected assignment expressions, got %s", p.peek(CURR).Literal)
+		}
+		expressions = append(expressions, right)
+
+		if p.peek(CURR).Type != token.COMMA {
+			break
+		}
+		p.pop()
+	}
+	return ast.NewVariableStatement(curr, expressions...), nil
 }
 
 func (p *Parser) prefixExpression() (ast.Expression, error) {
@@ -231,6 +268,17 @@ func (p *Parser) groupedExpression() (ast.Expression, error) {
 	}
 	p.pop()
 	return n, nil
+}
+
+func (p *Parser) assignmentExpression(left ast.Expression) (ast.Expression, error) {
+	curr := p.peek(CURR)
+	p.pop()
+
+	right, err := p.expression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+	return ast.NewAssignmentExpression(curr, left, right), nil
 }
 
 func (p *Parser) precedence(i int) int {

@@ -1,7 +1,10 @@
 package ast
 
 import (
+	"bytes"
 	"strings"
+
+	"github.com/siyul-park/minijs/internal/token"
 )
 
 type Statement interface {
@@ -37,17 +40,15 @@ func NewBlockStatement(statements ...Statement) *BlockStatement {
 }
 
 func (n *BlockStatement) String() string {
-	indent := "    "
-
-	var builder strings.Builder
-	builder.WriteString("{\n")
+	var out strings.Builder
+	out.WriteString("{\n")
 	for _, node := range n.Statements {
-		builder.WriteString(indent)
-		builder.WriteString(node.String())
-		builder.WriteString("\n")
+		out.WriteString("\t")
+		out.WriteString(node.String())
+		out.WriteString("\n")
 	}
-	builder.WriteString("}")
-	return builder.String()
+	out.WriteString("}")
+	return out.String()
 }
 
 type ExpressionStatement struct {
@@ -61,4 +62,27 @@ func NewExpressionStatement(expression Expression) *ExpressionStatement {
 
 func (n *ExpressionStatement) String() string {
 	return n.Expression.String() + ";"
+}
+
+type VariableStatement struct {
+	statement
+	Token token.Token
+	Right []*AssignmentExpression
+}
+
+func NewVariableStatement(token token.Token, right ...*AssignmentExpression) *VariableStatement {
+	return &VariableStatement{Token: token, Right: right}
+}
+
+func (n *VariableStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(n.Token.Literal)
+	out.WriteString(" ")
+	for i, node := range n.Right {
+		out.WriteString(node.String())
+		if i < len(n.Right)-1 {
+			out.WriteString(",")
+		}
+	}
+	return out.String()
 }

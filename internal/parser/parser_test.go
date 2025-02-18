@@ -169,6 +169,49 @@ func TestParser_Parse(t *testing.T) {
 				),
 			),
 		},
+		{
+			"a = b",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewAssignmentExpression(
+						token.New(token.ASSIGN, "="),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
+					),
+				),
+			),
+		},
+		{
+			"var a = b",
+			ast.NewProgram(
+				ast.NewVariableStatement(
+					token.New(token.VAR, "var"),
+					ast.NewAssignmentExpression(
+						token.New(token.ASSIGN, "="),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
+					),
+				),
+			),
+		},
+		{
+			"var a = b, c = d",
+			ast.NewProgram(
+				ast.NewVariableStatement(
+					token.New(token.VAR, "var"),
+					ast.NewAssignmentExpression(
+						token.New(token.ASSIGN, "="),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "a"), "a"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "b"), "b"),
+					),
+					ast.NewAssignmentExpression(
+						token.New(token.ASSIGN, "="),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "c"), "c"),
+						ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "d"), "d"),
+					),
+				),
+			),
+		},
 	}
 
 	for _, tt := range tests {

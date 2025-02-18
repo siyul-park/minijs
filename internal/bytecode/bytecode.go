@@ -41,9 +41,6 @@ func (b *Bytecode) String() string {
 	var out strings.Builder
 
 	out.WriteString("section .text:\n")
-	out.WriteString("\tglobal _main\n\n")
-	out.WriteString("_main:\n")
-
 	offset := 0
 	for offset < len(b.Instructions) {
 		bytecode, read := b.Fetch(offset)
