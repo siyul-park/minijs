@@ -76,15 +76,15 @@ func New(lexer *lexer.Lexer) *Parser {
 }
 
 func (p *Parser) Parse() (*ast.Program, error) {
-	program := &ast.Program{}
+	var statements []ast.Statement
 	for p.peek(CURR).Type != token.EOF {
 		stmt, err := p.statement()
 		if err != nil {
 			return nil, err
 		}
-		program.Statements = append(program.Statements, stmt)
+		statements = append(statements, stmt)
 	}
-	return program, nil
+	return ast.NewProgram(statements...), nil
 }
 
 func (p *Parser) statement() (ast.Statement, error) {

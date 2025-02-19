@@ -49,15 +49,15 @@ minijs --print-bytecode
 ```bash
 > 'b'+'a'+ +'a'+'a'
 section .text:
-        strload 0x00000000 0x00000001
-        strload 0x00000002 0x00000001
-        stradd
-        strload 0x00000002 0x00000002
-        strtof64
-        f64tostr
-        stradd
-        strload 0x00000002 0x00000002
-        stradd
+        str.load 0x00000000 0x00000001
+        str.load 0x00000002 0x00000001
+        str.add
+        str.load 0x00000002 0x00000001
+        str.to_f64
+        f64.to_str
+        str.add
+        str.load 0x00000002 0x00000001
+        str.add
         pop
 
 .section .data:
@@ -85,7 +85,7 @@ minijs -print-bytecode banana.js
 
 ```text
 section .text:
-        strload 0x00000000 0x00000006
+        str.load 0x00000000 0x00000006
         pop
 
 .section .data:

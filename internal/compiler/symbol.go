@@ -5,14 +5,12 @@ import (
 )
 
 type Symbol struct {
-	Name  string
-	Index int
-	Type  interpreter.Type
+	Name string
+	Type interpreter.Type
 }
 
 type SymbolTable struct {
 	symbols map[string]*Symbol
-	count   int
 }
 
 func NewSymbolTable() *SymbolTable {
@@ -22,9 +20,8 @@ func NewSymbolTable() *SymbolTable {
 }
 
 func (s *SymbolTable) Define(name string) *Symbol {
-	sym := &Symbol{Name: name, Index: s.count}
+	sym := &Symbol{Name: name}
 	s.symbols[name] = sym
-	s.count++
 	return sym
 }
 

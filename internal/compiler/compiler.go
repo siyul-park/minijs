@@ -137,12 +137,6 @@ func (c *Compiler) compileVariableStatement(node *ast.VariableStatement) error {
 	switch node.Token.Type {
 	case token.VAR:
 		for _, n := range node.Right {
-			sym, ok := c.symbolTable.Resolve(n.Left.String())
-			if !ok {
-				sym = c.symbolTable.Define(n.Left.String())
-			}
-			sym.Type = c.getType(n.Right)
-
 			if err := c.compile(n); err != nil {
 				return err
 			}
