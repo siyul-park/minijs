@@ -14,10 +14,16 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(NOP), expect: "nop"},
 		{instruction: New(POP), expect: "pop"},
 
-		{instruction: New(GLBLOAD), expect: "glb.load"},
+		{instruction: New(SLTLOAD, 0x01), expect: "slot.load 0x0001"},
+		{instruction: New(SLTSTORE, 0x01), expect: "slot.store 0x0001"},
 
-		{instruction: New(OBJSET), expect: "obj.set"},
-		{instruction: New(OBJGET), expect: "obj.get"},
+		{instruction: New(UNDEFLOAD), expect: "undef.load"},
+		{instruction: New(UNDEFTOF64), expect: "undef.to_f64"},
+		{instruction: New(UNDEFTOSTR), expect: "undef.to_str"},
+
+		{instruction: New(NULLLOAD), expect: "null.load"},
+		{instruction: New(NULLTOI32), expect: "null.to_i32"},
+		{instruction: New(NULLTOSTR), expect: "null.to_str"},
 
 		{instruction: New(BOOLLOAD, 0x01), expect: "bool.load 0x01"},
 		{instruction: New(BOOLTOI32), expect: "bool.to_i32"},

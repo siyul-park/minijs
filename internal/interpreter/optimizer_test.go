@@ -17,6 +17,42 @@ func TestOptimizer_Optimize(t *testing.T) {
 	}{
 		{
 			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
+				bytecode.New(bytecode.UNDEFTOF64),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(math.NaN())),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
+				bytecode.New(bytecode.UNDEFTOSTR),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.STRLOAD, 0, 9),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.NULLTOI32),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 0),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.NULLTOSTR),
+			},
+			expected: []bytecode.Instruction{
+				bytecode.New(bytecode.STRLOAD, 0, 4),
+			},
+		},
+		{
+			commands: []bytecode.Instruction{
 				bytecode.New(bytecode.BOOLLOAD, 1),
 				bytecode.New(bytecode.BOOLTOI32),
 			},

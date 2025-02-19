@@ -5,8 +5,9 @@ import (
 )
 
 type Symbol struct {
-	Name string
-	Type interpreter.Type
+	Name  string
+	Index int
+	Type  interpreter.Type
 }
 
 type SymbolTable struct {
@@ -20,7 +21,7 @@ func NewSymbolTable() *SymbolTable {
 }
 
 func (s *SymbolTable) Define(name string) *Symbol {
-	sym := &Symbol{Name: name}
+	sym := &Symbol{Name: name, Index: len(s.symbols)}
 	s.symbols[name] = sym
 	return sym
 }

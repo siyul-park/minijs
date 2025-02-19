@@ -10,16 +10,19 @@ import (
 )
 
 type Interpreter struct {
-	global *Object
 	stack  []Value
+	frames []Frame
 	sp     int
+	fp     int
 }
 
 func New() *Interpreter {
-	return &Interpreter{
-		global: NewObject(nil),
+	i := &Interpreter{
 		stack:  make([]Value, 64),
+		frames: make([]Frame, 64),
 	}
+	i.call(Frame{ip: -1})
+	return i
 }
 
 func (i *Interpreter) Pop() Value {
@@ -30,32 +33,46 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 	instructions := code.Instructions
 	constants := code.Constants
 
-	ip := -1
-	for ip < len(instructions)-1 {
-		ip++
+	i.frames[i.fp-1].ip = -1
+	for i.frames[i.fp-1].ip < len(instructions)-1 {
+		i.frames[i.fp-1].ip++
 
+		ip := i.frames[i.fp-1].ip
 		opcode := bytecode.Opcode(instructions[ip])
 
 		switch opcode {
 		case bytecode.NOP:
 		case bytecode.POP:
 			i.pop()
-		case bytecode.GLBLOAD:
-			i.push(i.global)
-		case bytecode.OBJSET:
-			val3 := i.pop()
-			val2 := i.pop()
-			val1 := i.pop().(*Object)
-			val1.Set(val2, val3)
-			i.push(val3)
-		case bytecode.OBJGET:
-			val2 := i.pop()
-			val1, _ := i.pop().(*Object)
-			val3, ok := val1.Get(val2)
-			if !ok {
-				val3 = Undefined{}
+		case bytecode.SLTLOAD:
+			idx := binary.BigEndian.Uint16(instructions[ip+1:])
+			var val Value = Undefined{}
+			if v, ok := i.frames[i.fp-1].Slot(int(idx)); ok {
+				val = v
 			}
-			i.push(val3)
+			i.push(val)
+			ip += 2
+		case bytecode.SLTSTORE:
+			idx := binary.BigEndian.Uint16(instructions[ip+1:])
+			val := i.pop()
+			i.frames[i.fp-1].SetSlot(int(idx), val)
+			ip += 2
+		case bytecode.UNDEFLOAD:
+			i.push(Undefined{})
+		case bytecode.UNDEFTOF64:
+			i.pop()
+			i.push(Float64(math.NaN()))
+		case bytecode.UNDEFTOSTR:
+			val, _ := i.pop().(Undefined)
+			i.push(String(val.String()))
+		case bytecode.NULLLOAD:
+			i.push(Null{})
+		case bytecode.NULLTOI32:
+			i.pop()
+			i.push(Int32(0))
+		case bytecode.NULLTOSTR:
+			val, _ := i.pop().(Null)
+			i.push(String(val.String()))
 		case bytecode.BOOLLOAD:
 			val := instructions[ip+1]
 			i.push(Bool(val))
@@ -66,7 +83,6 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.BOOLTOSTR:
 			val, _ := i.pop().(Bool)
 			i.push(String(val.String()))
-
 		case bytecode.I32LOAD:
 			val := Int32(binary.BigEndian.Uint32(instructions[ip+1:]))
 			i.push(val)
@@ -164,10 +180,26 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			return fmt.Errorf("unknown opcode: %v", typ.Mnemonic)
 		}
 
-		instructions = code.Instructions
-		constants = code.Constants
+		i.frames[i.fp-1].ip = ip
 	}
 	return nil
+}
+
+func (i *Interpreter) call(frame Frame) {
+	if len(i.frames) <= i.fp {
+		i.frames = append(i.frames, make([]Frame, len(i.frames)+1)...)
+	}
+	i.frames[i.fp] = frame
+	i.fp++
+}
+
+func (i *Interpreter) exit() Frame {
+	if i.fp == 0 {
+		return Frame{}
+	}
+	i.fp--
+	i.frames[i.fp] = Frame{}
+	return i.frames[i.fp]
 }
 
 func (i *Interpreter) push(val Value) {

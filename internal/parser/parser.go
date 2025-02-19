@@ -55,10 +55,12 @@ func New(lexer *lexer.Lexer) *Parser {
 		},
 	}
 	p.prefix = map[token.Type]func() (ast.Expression, error){
-		token.NUMBER:     p.numberLiteral,
-		token.STRING:     p.stringLiteral,
+		token.NULL:       p.nullLiteral,
+		token.UNDEFINED:  p.undefinedLiteral,
 		token.TRUE:       p.boolLiteral,
 		token.FALSE:      p.boolLiteral,
+		token.NUMBER:     p.numberLiteral,
+		token.STRING:     p.stringLiteral,
 		token.IDENTIFIER: p.identifierLiteral,
 		token.PLUS:       p.prefixExpression,
 		token.MINUS:      p.prefixExpression,
@@ -124,6 +126,30 @@ func (p *Parser) expression(precedence int) (ast.Expression, error) {
 	return left, nil
 }
 
+func (p *Parser) nullLiteral() (ast.Expression, error) {
+	curr := p.peek(CURR)
+	p.pop()
+	return ast.NewNullLiteral(curr), nil
+}
+
+func (p *Parser) undefinedLiteral() (ast.Expression, error) {
+	curr := p.peek(CURR)
+	p.pop()
+	return ast.NewUndefinedLiteral(curr), nil
+}
+
+func (p *Parser) boolLiteral() (ast.Expression, error) {
+	curr := p.peek(CURR)
+	p.pop()
+	return ast.NewBoolLiteral(curr, curr.Literal == "true"), nil
+}
+
+func (p *Parser) stringLiteral() (ast.Expression, error) {
+	curr := p.peek(CURR)
+	p.pop()
+	return ast.NewStringLiteral(curr, curr.Literal), nil
+}
+
 func (p *Parser) numberLiteral() (ast.Expression, error) {
 	curr := p.peek(CURR)
 	p.pop()
@@ -157,18 +183,6 @@ func (p *Parser) numberLiteral() (ast.Expression, error) {
 	}
 
 	return ast.NewNumberLiteral(curr, value), nil
-}
-
-func (p *Parser) stringLiteral() (ast.Expression, error) {
-	curr := p.peek(CURR)
-	p.pop()
-	return ast.NewStringLiteral(curr, curr.Literal), nil
-}
-
-func (p *Parser) boolLiteral() (ast.Expression, error) {
-	curr := p.peek(CURR)
-	p.pop()
-	return ast.NewBoolLiteral(curr, curr.Literal == "true"), nil
 }
 
 func (p *Parser) identifierLiteral() (ast.Expression, error) {

@@ -19,29 +19,53 @@ type Compiler struct {
 }
 
 var casts = map[interpreter.Type]map[interpreter.Type][]bytecode.Instruction{
+	interpreter.UNDEFINED: {
+		interpreter.UNDEFINED: {},
+		interpreter.NULL:      {},
+		interpreter.BOOL:      {},
+		interpreter.INT32:     {},
+		interpreter.FLOAT64:   {bytecode.New(bytecode.UNDEFTOF64)},
+		interpreter.STRING:    {bytecode.New(bytecode.UNDEFTOSTR)},
+	},
+	interpreter.NULL: {
+		interpreter.UNDEFINED: {},
+		interpreter.NULL:      {},
+		interpreter.BOOL:      {},
+		interpreter.INT32:     {bytecode.New(bytecode.NULLTOI32)},
+		interpreter.FLOAT64:   {bytecode.New(bytecode.NULLTOI32), bytecode.New(bytecode.I32TOF64)},
+		interpreter.STRING:    {bytecode.New(bytecode.NULLTOSTR)},
+	},
 	interpreter.BOOL: {
-		interpreter.BOOL:    {},
-		interpreter.INT32:   {bytecode.New(bytecode.BOOLTOI32)},
-		interpreter.FLOAT64: {bytecode.New(bytecode.BOOLTOI32), bytecode.New(bytecode.I32TOF64)},
-		interpreter.STRING:  {bytecode.New(bytecode.BOOLTOSTR)},
+		interpreter.UNDEFINED: {},
+		interpreter.NULL:      {},
+		interpreter.BOOL:      {},
+		interpreter.INT32:     {bytecode.New(bytecode.BOOLTOI32)},
+		interpreter.FLOAT64:   {bytecode.New(bytecode.BOOLTOI32), bytecode.New(bytecode.I32TOF64)},
+		interpreter.STRING:    {bytecode.New(bytecode.BOOLTOSTR)},
 	},
 	interpreter.INT32: {
-		interpreter.BOOL:    {bytecode.New(bytecode.I32TOBOOL)},
-		interpreter.INT32:   {},
-		interpreter.FLOAT64: {bytecode.New(bytecode.I32TOF64)},
-		interpreter.STRING:  {bytecode.New(bytecode.I32TOSTR)},
+		interpreter.UNDEFINED: {},
+		interpreter.NULL:      {},
+		interpreter.BOOL:      {bytecode.New(bytecode.I32TOBOOL)},
+		interpreter.INT32:     {},
+		interpreter.FLOAT64:   {bytecode.New(bytecode.I32TOF64)},
+		interpreter.STRING:    {bytecode.New(bytecode.I32TOSTR)},
 	},
 	interpreter.FLOAT64: {
-		interpreter.BOOL:    {},
-		interpreter.INT32:   {bytecode.New(bytecode.F64TOI32)},
-		interpreter.FLOAT64: {},
-		interpreter.STRING:  {bytecode.New(bytecode.F64TOSTR)},
+		interpreter.UNDEFINED: {},
+		interpreter.NULL:      {},
+		interpreter.BOOL:      {},
+		interpreter.INT32:     {bytecode.New(bytecode.F64TOI32)},
+		interpreter.FLOAT64:   {},
+		interpreter.STRING:    {bytecode.New(bytecode.F64TOSTR)},
 	},
 	interpreter.STRING: {
-		interpreter.BOOL:    {},
-		interpreter.INT32:   {bytecode.New(bytecode.STRTOI32)},
-		interpreter.FLOAT64: {bytecode.New(bytecode.STRTOF64)},
-		interpreter.STRING:  {},
+		interpreter.UNDEFINED: {},
+		interpreter.NULL:      {},
+		interpreter.BOOL:      {},
+		interpreter.INT32:     {bytecode.New(bytecode.STRTOI32)},
+		interpreter.FLOAT64:   {bytecode.New(bytecode.STRTOF64)},
+		interpreter.STRING:    {},
 	},
 }
 
@@ -76,6 +100,10 @@ func (c *Compiler) compile(node ast.Node) error {
 		return c.compileInfixExpression(node)
 	case *ast.AssignmentExpression:
 		return c.compileAssignmentExpression(node)
+	case *ast.NullLiteral:
+		return c.compileNullLiteral(node)
+	case *ast.UndefinedLiteral:
+		return c.compileUndefinedLiteral(node)
 	case *ast.BoolLiteral:
 		return c.compileBoolLiteral(node)
 	case *ast.NumberLiteral:
@@ -239,20 +267,28 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
 }
 
 func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) error {
+	if err := c.compile(node.Right); err != nil {
+		return err
+	}
+
 	sym, ok := c.symbolTable.Resolve(node.Left.String())
 	if !ok {
 		sym = c.symbolTable.Define(node.Left.String())
 	}
 	sym.Type = c.getType(node.Right)
 
-	if err := c.compile(node.Left); err != nil {
-		return err
-	}
-	c.instructions = c.instructions[:len(c.instructions)-1]
-	if err := c.compile(node.Right); err != nil {
-		return err
-	}
-	c.emit(bytecode.OBJSET)
+	c.emit(bytecode.SLTSTORE, uint64(sym.Index))
+	c.emit(bytecode.SLTLOAD, uint64(sym.Index))
+	return nil
+}
+
+func (c *Compiler) compileNullLiteral(_ *ast.NullLiteral) error {
+	c.emit(bytecode.NULLLOAD)
+	return nil
+}
+
+func (c *Compiler) compileUndefinedLiteral(_ *ast.UndefinedLiteral) error {
+	c.emit(bytecode.UNDEFLOAD)
 	return nil
 }
 
@@ -288,10 +324,11 @@ func (c *Compiler) compileStringLiteral(node *ast.StringLiteral) error {
 }
 
 func (c *Compiler) compileIdentifierLiteral(node *ast.IdentifierLiteral) error {
-	c.emit(bytecode.GLBLOAD)
-	offset, size := c.store([]byte(node.Value))
-	c.emit(bytecode.STRLOAD, offset, size)
-	c.emit(bytecode.OBJGET)
+	sym, ok := c.symbolTable.Resolve(node.Value)
+	if !ok {
+		return fmt.Errorf("undefined identifier: %s", node.Value)
+	}
+	c.emit(bytecode.SLTLOAD, uint64(sym.Index))
 	return nil
 }
 
@@ -303,6 +340,10 @@ func (c *Compiler) getType(node ast.Expression) interpreter.Type {
 		return c.getInfixExpressionType(node)
 	case *ast.AssignmentExpression:
 		return c.getAssignmentExpression(node)
+	case *ast.NullLiteral:
+		return c.getNullLiteralType(node)
+	case *ast.UndefinedLiteral:
+		return c.getUndefinedLiteralType(node)
 	case *ast.BoolLiteral:
 		return c.getBoolLiteralType(node)
 	case *ast.NumberLiteral:
@@ -348,12 +389,16 @@ func (c *Compiler) getInfixExpressionType(node *ast.InfixExpression) interpreter
 			return interpreter.STRING
 		} else if left == interpreter.FLOAT64 || right == interpreter.FLOAT64 {
 			return interpreter.FLOAT64
+		} else if left == interpreter.INT32 && right == interpreter.INT32 {
+			return interpreter.INT32
 		}
-		return interpreter.INT32
+		return interpreter.FLOAT64
 	case token.DIVIDE, token.MODULUS:
 		return interpreter.FLOAT64
 	default:
-		if left == interpreter.INT32 && right == interpreter.INT32 {
+		if left == interpreter.FLOAT64 || right == interpreter.FLOAT64 {
+			return interpreter.FLOAT64
+		} else if left == interpreter.INT32 && right == interpreter.INT32 {
 			return interpreter.INT32
 		}
 		return interpreter.FLOAT64
@@ -362,6 +407,14 @@ func (c *Compiler) getInfixExpressionType(node *ast.InfixExpression) interpreter
 
 func (c *Compiler) getAssignmentExpression(node *ast.AssignmentExpression) interpreter.Type {
 	return c.getType(node.Right)
+}
+
+func (c *Compiler) getNullLiteralType(_ *ast.NullLiteral) interpreter.Type {
+	return interpreter.NULL
+}
+
+func (c *Compiler) getUndefinedLiteralType(_ *ast.UndefinedLiteral) interpreter.Type {
+	return interpreter.UNDEFINED
 }
 
 func (c *Compiler) getBoolLiteralType(_ *ast.BoolLiteral) interpreter.Type {

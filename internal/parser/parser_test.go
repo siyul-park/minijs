@@ -51,6 +51,22 @@ func TestParser_Parse(t *testing.T) {
 			),
 		},
 		{
+			"null",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewNullLiteral(token.New(token.NULL, "null")),
+				),
+			),
+		},
+		{
+			"undefined",
+			ast.NewProgram(
+				ast.NewExpressionStatement(
+					ast.NewUndefinedLiteral(token.New(token.UNDEFINED, "undefined")),
+				),
+			),
+		},
+		{
 			"123",
 			ast.NewProgram(
 				ast.NewExpressionStatement(

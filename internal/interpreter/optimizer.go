@@ -65,7 +65,7 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 
 			operand := instructions[j]
 			switch operand.Opcode() {
-			case bytecode.BOOLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
+			case bytecode.UNDEFLOAD, bytecode.NULLLOAD, bytecode.BOOLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
 				switch inst.Opcode() {
 				case bytecode.I32TOBOOL:
 					code := bytecode.Bytecode{Constants: constants}
@@ -78,7 +78,7 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 
 					instructions[j] = bytecode.New(bytecode.NOP)
 					instructions[i] = bytecode.New(bytecode.BOOLLOAD, uint64(val))
-				case bytecode.BOOLTOI32, bytecode.F64TOI32, bytecode.STRTOI32:
+				case bytecode.NULLTOI32, bytecode.BOOLTOI32, bytecode.F64TOI32, bytecode.STRTOI32:
 					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
@@ -89,7 +89,7 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 
 					instructions[j] = bytecode.New(bytecode.NOP)
 					instructions[i] = bytecode.New(bytecode.I32LOAD, uint64(val))
-				case bytecode.I32TOF64, bytecode.STRTOF64:
+				case bytecode.UNDEFTOF64, bytecode.I32TOF64, bytecode.STRTOF64:
 					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
@@ -100,7 +100,7 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 
 					instructions[j] = bytecode.New(bytecode.NOP)
 					instructions[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
-				case bytecode.BOOLTOSTR, bytecode.I32TOSTR, bytecode.F64TOSTR:
+				case bytecode.UNDEFTOSTR, bytecode.NULLTOSTR, bytecode.BOOLTOSTR, bytecode.I32TOSTR, bytecode.F64TOSTR:
 					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {

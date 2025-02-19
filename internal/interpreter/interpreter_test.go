@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/siyul-park/minijs/internal/bytecode"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,33 +26,57 @@ func TestInterpreter_Execute(t *testing.T) {
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.SLTSTORE, 1),
 			},
-			stack: []Value{NewObject(nil)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.OBJSET),
+				bytecode.New(bytecode.SLTSTORE, 1),
+				bytecode.New(bytecode.SLTLOAD, 1),
 			},
-			literals: []string{"foo"},
-			stack:    []Value{Int32(1)},
+			stack: []Value{Int32(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
-				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.OBJSET),
-				bytecode.New(bytecode.POP),
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
-				bytecode.New(bytecode.OBJGET),
+				bytecode.New(bytecode.UNDEFLOAD),
 			},
-			literals: []string{"foo"},
-			stack:    []Value{Int32(1)},
+			stack: []Value{Undefined{}},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
+				bytecode.New(bytecode.UNDEFTOF64),
+			},
+			//stack: []Value{Float64(math.NaN())},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
+				bytecode.New(bytecode.UNDEFTOSTR),
+			},
+			stack: []Value{String("undefined")},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+			},
+			stack: []Value{Null{}},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.NULLTOI32),
+			},
+			stack: []Value{Int32(0)},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.NULLTOSTR),
+			},
+			stack: []Value{String("null")},
 		},
 		{
 			instructions: []bytecode.Instruction{
@@ -281,18 +304,56 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.SLTSTORE, 1),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.SLTSTORE, 1),
+				bytecode.New(bytecode.SLTLOAD, 1),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
 				bytecode.New(bytecode.POP),
 			},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
-				bytecode.New(bytecode.I32LOAD, 1),
+				bytecode.New(bytecode.UNDEFLOAD),
+				bytecode.New(bytecode.UNDEFTOF64),
 				bytecode.New(bytecode.POP),
 			},
-			literals: []string{"foo"},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
+				bytecode.New(bytecode.UNDEFTOSTR),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.NULLTOI32),
+				bytecode.New(bytecode.POP),
+			},
+		},
+		{
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+				bytecode.New(bytecode.NULLTOSTR),
+				bytecode.New(bytecode.POP),
+			},
 		},
 		{
 			instructions: []bytecode.Instruction{

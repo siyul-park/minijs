@@ -19,10 +19,16 @@ const (
 	NOP Opcode = iota
 	POP
 
-	GLBLOAD
+	SLTLOAD
+	SLTSTORE
 
-	OBJSET
-	OBJGET
+	UNDEFLOAD
+	UNDEFTOF64
+	UNDEFTOSTR
+
+	NULLLOAD
+	NULLTOI32
+	NULLTOSTR
 
 	BOOLLOAD
 	BOOLTOI32
@@ -57,10 +63,16 @@ var types = map[Opcode]*Type{
 	NOP: {Mnemonic: "nop"},
 	POP: {Mnemonic: "pop"},
 
-	GLBLOAD: {Mnemonic: "glb.load"},
+	SLTLOAD:  {Mnemonic: "slot.load", Widths: []int{2}},
+	SLTSTORE: {Mnemonic: "slot.store", Widths: []int{2}},
 
-	OBJSET: {Mnemonic: "obj.set"},
-	OBJGET: {Mnemonic: "obj.get"},
+	UNDEFLOAD:  {Mnemonic: "undef.load"},
+	UNDEFTOF64: {Mnemonic: "undef.to_f64"},
+	UNDEFTOSTR: {Mnemonic: "undef.to_str"},
+
+	NULLLOAD:  {Mnemonic: "null.load"},
+	NULLTOI32: {Mnemonic: "null.to_i32"},
+	NULLTOSTR: {Mnemonic: "null.to_str"},
 
 	BOOLLOAD:  {Mnemonic: "bool.load", Widths: []int{1}},
 	BOOLTOI32: {Mnemonic: "bool.to_i32"},

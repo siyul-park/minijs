@@ -4,6 +4,32 @@ import (
 	"github.com/siyul-park/minijs/internal/token"
 )
 
+type NullLiteral struct {
+	expression
+	Token token.Token
+}
+
+func NewNullLiteral(tok token.Token) *NullLiteral {
+	return &NullLiteral{Token: tok}
+}
+
+func (n *NullLiteral) String() string {
+	return n.Token.Literal
+}
+
+type UndefinedLiteral struct {
+	expression
+	Token token.Token
+}
+
+func NewUndefinedLiteral(tok token.Token) *UndefinedLiteral {
+	return &UndefinedLiteral{Token: tok}
+}
+
+func (n *UndefinedLiteral) String() string {
+	return n.Token.Literal
+}
+
 type BoolLiteral struct {
 	expression
 	Token token.Token

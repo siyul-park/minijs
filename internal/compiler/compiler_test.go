@@ -21,6 +21,60 @@ func TestCompiler_Compile(t *testing.T) {
 			node: ast.NewEmptyStatement(),
 		},
 		{
+			node: ast.NewNullLiteral(token.Token{Type: token.NULL, Literal: "null"}),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.NULLLOAD),
+			},
+		},
+		{
+			node: ast.NewUndefinedLiteral(token.Token{Type: token.UNDEFINED, Literal: "undefined"}),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.UNDEFLOAD),
+			},
+		},
+		{
+			node: ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BOOLLOAD, 1),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.New(token.PLUS, "+"),
+				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOI32),
+			},
+		},
+		{
+			node: ast.NewPrefixExpression(
+				token.New(token.MINUS, "-"),
+				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOI32),
+				bytecode.New(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF)),
+				bytecode.New(bytecode.I32MUL),
+			},
+		},
+		{
+			node: ast.NewInfixExpression(
+				token.New(token.MINUS, "-"),
+				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1.0),
+				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
+			),
+			instructions: []bytecode.Instruction{
+				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOI32),
+				bytecode.New(bytecode.I32TOF64),
+				bytecode.New(bytecode.F64SUB),
+			},
+		},
+		{
 			node: ast.NewExpressionStatement(
 				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1"}, 1),
 			),
@@ -271,45 +325,12 @@ func TestCompiler_Compile(t *testing.T) {
 			literals: []string{"foo", "bar"},
 		},
 		{
-			node: ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BOOLLOAD, 1),
-			},
-		},
-		{
-			node: ast.NewPrefixExpression(
-				token.New(token.PLUS, "+"),
-				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
+			node: ast.NewExpressionStatement(
+				ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "foo"), "foo"),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BOOLLOAD, 1),
-				bytecode.New(bytecode.BOOLTOI32),
-			},
-		},
-		{
-			node: ast.NewPrefixExpression(
-				token.New(token.MINUS, "-"),
-				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BOOLLOAD, 1),
-				bytecode.New(bytecode.BOOLTOI32),
-				bytecode.New(bytecode.I32LOAD, uint64(0xFFFFFFFFFFFFFFFF)),
-				bytecode.New(bytecode.I32MUL),
-			},
-		},
-		{
-			node: ast.NewInfixExpression(
-				token.New(token.MINUS, "-"),
-				ast.NewNumberLiteral(token.Token{Type: token.NUMBER, Literal: "1.0"}, 1.0),
-				ast.NewBoolLiteral(token.Token{Type: token.TRUE, Literal: "true"}, true),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.F64LOAD, math.Float64bits(1)),
-				bytecode.New(bytecode.BOOLLOAD, 1),
-				bytecode.New(bytecode.BOOLTOI32),
-				bytecode.New(bytecode.I32TOF64),
-				bytecode.New(bytecode.F64SUB),
+				bytecode.New(bytecode.SLTLOAD, 0),
+				bytecode.New(bytecode.POP),
 			},
 		},
 		{
@@ -322,13 +343,11 @@ func TestCompiler_Compile(t *testing.T) {
 				),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.OBJSET),
+				bytecode.New(bytecode.SLTSTORE, 0),
+				bytecode.New(bytecode.SLTLOAD, 0),
 				bytecode.New(bytecode.POP),
 			},
-			literals: []string{"foo"},
 		},
 		{
 			node: ast.NewExpressionStatement(
@@ -339,25 +358,11 @@ func TestCompiler_Compile(t *testing.T) {
 				),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.OBJSET),
+				bytecode.New(bytecode.SLTSTORE, 0),
+				bytecode.New(bytecode.SLTLOAD, 0),
 				bytecode.New(bytecode.POP),
 			},
-			literals: []string{"foo"},
-		},
-		{
-			node: ast.NewExpressionStatement(
-				ast.NewIdentifierLiteral(token.New(token.IDENTIFIER, "foo"), "foo"),
-			),
-			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
-				bytecode.New(bytecode.OBJGET),
-				bytecode.New(bytecode.POP),
-			},
-			literals: []string{"foo"},
 		},
 		{
 			node: ast.NewBlockStatement(
@@ -378,19 +383,15 @@ func TestCompiler_Compile(t *testing.T) {
 				),
 			),
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.OBJSET),
+				bytecode.New(bytecode.SLTSTORE, 0),
+				bytecode.New(bytecode.SLTLOAD, 0),
 				bytecode.New(bytecode.POP),
-				bytecode.New(bytecode.GLBLOAD),
-				bytecode.New(bytecode.STRLOAD, 0, 3),
-				bytecode.New(bytecode.OBJGET),
+				bytecode.New(bytecode.SLTLOAD, 0),
 				bytecode.New(bytecode.I32LOAD, 1),
 				bytecode.New(bytecode.I32ADD),
 				bytecode.New(bytecode.POP),
 			},
-			literals: []string{"foo"},
 		},
 	}
 
