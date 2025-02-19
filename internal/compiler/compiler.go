@@ -15,17 +15,18 @@ import (
 type Compiler struct {
 	instructions []bytecode.Instruction
 	constants    [][]byte
+	symbolTable  *SymbolTable
 }
 
 var casts = map[interpreter.Type]map[interpreter.Type][]bytecode.Instruction{
 	interpreter.BOOL: {
 		interpreter.BOOL:    {},
-		interpreter.INT32:   {bytecode.New(bytecode.BLTOI32)},
-		interpreter.FLOAT64: {bytecode.New(bytecode.BLTOI32), bytecode.New(bytecode.I32TOF64)},
-		interpreter.STRING:  {bytecode.New(bytecode.BLTOSTR)},
+		interpreter.INT32:   {bytecode.New(bytecode.BOOLTOI32)},
+		interpreter.FLOAT64: {bytecode.New(bytecode.BOOLTOI32), bytecode.New(bytecode.I32TOF64)},
+		interpreter.STRING:  {bytecode.New(bytecode.BOOLTOSTR)},
 	},
 	interpreter.INT32: {
-		interpreter.BOOL:    {bytecode.New(bytecode.I32TOBL)},
+		interpreter.BOOL:    {bytecode.New(bytecode.I32TOBOOL)},
 		interpreter.INT32:   {},
 		interpreter.FLOAT64: {bytecode.New(bytecode.I32TOF64)},
 		interpreter.STRING:  {bytecode.New(bytecode.I32TOSTR)},
@@ -45,7 +46,9 @@ var casts = map[interpreter.Type]map[interpreter.Type][]bytecode.Instruction{
 }
 
 func New() *Compiler {
-	return &Compiler{}
+	return &Compiler{
+		symbolTable: NewSymbolTable(),
+	}
 }
 
 func (c *Compiler) Compile(node ast.Node) (bytecode.Bytecode, error) {
@@ -134,6 +137,12 @@ func (c *Compiler) compileVariableStatement(node *ast.VariableStatement) error {
 	switch node.Token.Type {
 	case token.VAR:
 		for _, n := range node.Right {
+			sym, ok := c.symbolTable.Resolve(n.Left.String())
+			if !ok {
+				sym = c.symbolTable.Define(n.Left.String())
+			}
+			sym.Type = c.getType(n.Right)
+
 			if err := c.compile(n); err != nil {
 				return err
 			}
@@ -236,6 +245,12 @@ func (c *Compiler) compileInfixExpression(node *ast.InfixExpression) error {
 }
 
 func (c *Compiler) compileAssignmentExpression(node *ast.AssignmentExpression) error {
+	sym, ok := c.symbolTable.Resolve(node.Left.String())
+	if !ok {
+		sym = c.symbolTable.Define(node.Left.String())
+	}
+	sym.Type = c.getType(node.Right)
+
 	if err := c.compile(node.Left); err != nil {
 		return err
 	}
@@ -252,7 +267,7 @@ func (c *Compiler) compileBoolLiteral(node *ast.BoolLiteral) error {
 	if node.Value {
 		value = 1
 	}
-	c.emit(bytecode.BLLOAD, value)
+	c.emit(bytecode.BOOLLOAD, value)
 	return nil
 }
 
@@ -286,45 +301,6 @@ func (c *Compiler) compileIdentifierLiteral(node *ast.IdentifierLiteral) error {
 	return nil
 }
 
-func (c *Compiler) cast(from, to interpreter.Type) error {
-	if from == to {
-		return nil
-	}
-
-	queue := []struct {
-		kind         interpreter.Type
-		instructions []bytecode.Instruction
-	}{{from, nil}}
-
-	visited := map[interpreter.Type]bool{}
-	visited[from] = true
-
-	for len(queue) > 0 {
-		curr := queue[0]
-		queue = queue[1:]
-
-		if insns := casts[curr.kind][to]; len(insns) > 0 {
-			c.instructions = append(c.instructions, append(curr.instructions, insns...)...)
-			return nil
-		}
-
-		for next, insns := range casts[curr.kind] {
-			if !visited[next] && len(insns) > 0 {
-				visited[next] = true
-				queue = append(queue, struct {
-					kind         interpreter.Type
-					instructions []bytecode.Instruction
-				}{
-					kind:         next,
-					instructions: append(curr.instructions, insns...),
-				})
-			}
-		}
-	}
-
-	return fmt.Errorf("no cast path found from %v to %v", from, to)
-}
-
 func (c *Compiler) getType(node ast.Expression) interpreter.Type {
 	switch node := node.(type) {
 	case *ast.PrefixExpression:
@@ -339,6 +315,8 @@ func (c *Compiler) getType(node ast.Expression) interpreter.Type {
 		return c.getNumberLiteralType(node)
 	case *ast.StringLiteral:
 		return c.getStringLiteralType(node)
+	case *ast.IdentifierLiteral:
+		return c.getIdentifierLiteralType(node)
 	default:
 		return interpreter.UNKNOWN
 	}
@@ -409,6 +387,26 @@ func (c *Compiler) getStringLiteralType(_ *ast.StringLiteral) interpreter.Type {
 	return interpreter.STRING
 }
 
+func (c *Compiler) getIdentifierLiteralType(node *ast.IdentifierLiteral) interpreter.Type {
+	sym, ok := c.symbolTable.Resolve(node.Value)
+	if !ok {
+		return interpreter.UNDEFINED
+	}
+	return sym.Type
+}
+
+func (c *Compiler) cast(from, to interpreter.Type) error {
+	if from == to {
+		return nil
+	}
+	if instructions := casts[from][to]; len(instructions) > 0 {
+		c.instructions = append(c.instructions, instructions...)
+		return nil
+	}
+	// TODO: dynamic cast
+	return fmt.Errorf("no cast path found from %v to %v", from, to)
+}
+
 func (c *Compiler) emit(op bytecode.Opcode, operands ...uint64) {
 	c.instructions = append(c.instructions, bytecode.New(op, operands...))
 }
@@ -417,7 +415,7 @@ func (c *Compiler) store(val []byte) (uint64, uint64) {
 	offset := 0
 	for _, v := range c.constants {
 		if bytes.Equal(v[:len(v)-1], val) {
-			return uint64(offset), uint64(len(v))
+			return uint64(offset), uint64(len(v) - 1)
 		}
 		offset += len(v)
 	}

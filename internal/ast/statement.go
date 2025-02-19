@@ -43,9 +43,8 @@ func (n *BlockStatement) String() string {
 	var out strings.Builder
 	out.WriteString("{\n")
 	for _, node := range n.Statements {
-		out.WriteString("\t")
 		out.WriteString(node.String())
-		out.WriteString("\n")
+		out.WriteString(";")
 	}
 	out.WriteString("}")
 	return out.String()
@@ -84,5 +83,6 @@ func (n *VariableStatement) String() string {
 			out.WriteString(",")
 		}
 	}
+	out.WriteString(";")
 	return out.String()
 }

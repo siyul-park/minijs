@@ -33,12 +33,6 @@ func TestInterpreter_Execute(t *testing.T) {
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.CTXLOAD),
-			},
-			stack: []Value{NewObject(nil)},
-		},
-		{
-			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.GLBLOAD),
 				bytecode.New(bytecode.STRLOAD, 0, 3),
 				bytecode.New(bytecode.I32LOAD, 1),
@@ -63,21 +57,21 @@ func TestInterpreter_Execute(t *testing.T) {
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
+				bytecode.New(bytecode.BOOLLOAD, 1),
 			},
 			stack: []Value{Bool(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
-				bytecode.New(bytecode.BLTOI32),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOI32),
 			},
 			stack: []Value{Int32(1)},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
-				bytecode.New(bytecode.BLTOSTR),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOSTR),
 			},
 			stack: []Value{String("true")},
 		},
@@ -138,7 +132,7 @@ func TestInterpreter_Execute(t *testing.T) {
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I32TOBL),
+				bytecode.New(bytecode.I32TOBOOL),
 			},
 			stack: []Value{Bool(1)},
 		},
@@ -302,21 +296,21 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
+				bytecode.New(bytecode.BOOLLOAD, 1),
 				bytecode.New(bytecode.POP),
 			},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
-				bytecode.New(bytecode.BLTOI32),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOI32),
 				bytecode.New(bytecode.POP),
 			},
 		},
 		{
 			instructions: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
-				bytecode.New(bytecode.BLTOSTR),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOSTR),
 				bytecode.New(bytecode.POP),
 			},
 		},
@@ -377,7 +371,7 @@ func BenchmarkInterpreter_Execute(b *testing.B) {
 		{
 			instructions: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I32TOBL),
+				bytecode.New(bytecode.I32TOBOOL),
 			},
 		},
 		{

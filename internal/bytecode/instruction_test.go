@@ -15,14 +15,13 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(POP), expect: "pop"},
 
 		{instruction: New(GLBLOAD), expect: "glbload"},
-		{instruction: New(CTXLOAD), expect: "ctxload"},
 
 		{instruction: New(OBJSET), expect: "objset"},
 		{instruction: New(OBJGET), expect: "objget"},
 
-		{instruction: New(BLLOAD, 0x01), expect: "blload 0x01"},
-		{instruction: New(BLTOI32), expect: "bltoi32"},
-		{instruction: New(BLTOSTR), expect: "bltostr"},
+		{instruction: New(BOOLLOAD, 0x01), expect: "boolload 0x01"},
+		{instruction: New(BOOLTOI32), expect: "booltoi32"},
+		{instruction: New(BOOLTOSTR), expect: "booltostr"},
 
 		{instruction: New(I32LOAD, 0x01), expect: "i32load 0x00000001"},
 		{instruction: New(I32MUL), expect: "i32mul"},
@@ -30,7 +29,7 @@ func TestInstruction_String(t *testing.T) {
 		{instruction: New(I32SUB), expect: "i32sub"},
 		{instruction: New(I32DIV), expect: "i32div"},
 		{instruction: New(I32MOD), expect: "i32mod"},
-		{instruction: New(I32TOBL), expect: "i32tobl"},
+		{instruction: New(I32TOBOOL), expect: "i32tobool"},
 		{instruction: New(I32TOF64), expect: "i32tof64"},
 		{instruction: New(I32TOSTR), expect: "i32tostr"},
 

@@ -20,14 +20,13 @@ const (
 	POP
 
 	GLBLOAD
-	CTXLOAD
 
 	OBJSET
 	OBJGET
 
-	BLLOAD
-	BLTOI32
-	BLTOSTR
+	BOOLLOAD
+	BOOLTOI32
+	BOOLTOSTR
 
 	I32LOAD
 	I32MUL
@@ -35,7 +34,7 @@ const (
 	I32SUB
 	I32DIV
 	I32MOD
-	I32TOBL
+	I32TOBOOL
 	I32TOF64
 	I32TOSTR
 
@@ -59,24 +58,23 @@ var types = map[Opcode]*Type{
 	POP: {Mnemonic: "pop"},
 
 	GLBLOAD: {Mnemonic: "glbload"},
-	CTXLOAD: {Mnemonic: "ctxload"},
 
 	OBJSET: {Mnemonic: "objset"},
 	OBJGET: {Mnemonic: "objget"},
 
-	BLLOAD:  {Mnemonic: "blload", Widths: []int{1}},
-	BLTOI32: {Mnemonic: "bltoi32"},
-	BLTOSTR: {Mnemonic: "bltostr"},
+	BOOLLOAD:  {Mnemonic: "boolload", Widths: []int{1}},
+	BOOLTOI32: {Mnemonic: "booltoi32"},
+	BOOLTOSTR: {Mnemonic: "booltostr"},
 
-	I32LOAD:  {Mnemonic: "i32load", Widths: []int{4}},
-	I32MUL:   {Mnemonic: "i32mul"},
-	I32ADD:   {Mnemonic: "i32add"},
-	I32SUB:   {Mnemonic: "i32sub"},
-	I32DIV:   {Mnemonic: "i32div"},
-	I32MOD:   {Mnemonic: "i32mod"},
-	I32TOBL:  {Mnemonic: "i32tobl"},
-	I32TOF64: {Mnemonic: "i32tof64"},
-	I32TOSTR: {Mnemonic: "i32tostr"},
+	I32LOAD:   {Mnemonic: "i32load", Widths: []int{4}},
+	I32MUL:    {Mnemonic: "i32mul"},
+	I32ADD:    {Mnemonic: "i32add"},
+	I32SUB:    {Mnemonic: "i32sub"},
+	I32DIV:    {Mnemonic: "i32div"},
+	I32MOD:    {Mnemonic: "i32mod"},
+	I32TOBOOL: {Mnemonic: "i32tobool"},
+	I32TOF64:  {Mnemonic: "i32tof64"},
+	I32TOSTR:  {Mnemonic: "i32tostr"},
 
 	F64LOAD:  {Mnemonic: "f64load", Widths: []int{8}},
 	F64ADD:   {Mnemonic: "f64add"},

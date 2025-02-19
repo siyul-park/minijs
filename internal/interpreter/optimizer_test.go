@@ -17,8 +17,8 @@ func TestOptimizer_Optimize(t *testing.T) {
 	}{
 		{
 			commands: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
-				bytecode.New(bytecode.BLTOI32),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOI32),
 			},
 			expected: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
@@ -26,8 +26,8 @@ func TestOptimizer_Optimize(t *testing.T) {
 		},
 		{
 			commands: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
-				bytecode.New(bytecode.BLTOSTR),
+				bytecode.New(bytecode.BOOLLOAD, 1),
+				bytecode.New(bytecode.BOOLTOSTR),
 			},
 			expected: []bytecode.Instruction{
 				bytecode.New(bytecode.STRLOAD, 0, 4),
@@ -37,10 +37,10 @@ func TestOptimizer_Optimize(t *testing.T) {
 		{
 			commands: []bytecode.Instruction{
 				bytecode.New(bytecode.I32LOAD, 1),
-				bytecode.New(bytecode.I32TOBL),
+				bytecode.New(bytecode.I32TOBOOL),
 			},
 			expected: []bytecode.Instruction{
-				bytecode.New(bytecode.BLLOAD, 1),
+				bytecode.New(bytecode.BOOLLOAD, 1),
 			},
 		},
 		{

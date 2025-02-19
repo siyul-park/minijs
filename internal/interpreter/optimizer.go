@@ -65,9 +65,9 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 
 			operand := instructions[j]
 			switch operand.Opcode() {
-			case bytecode.BLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
+			case bytecode.BOOLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
 				switch inst.Opcode() {
-				case bytecode.I32TOBL:
+				case bytecode.I32TOBOOL:
 					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
@@ -77,8 +77,8 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 					val, _ := o.interpreter.Pop().(Bool)
 
 					instructions[j] = bytecode.New(bytecode.NOP)
-					instructions[i] = bytecode.New(bytecode.BLLOAD, uint64(val))
-				case bytecode.BLTOI32, bytecode.F64TOI32, bytecode.STRTOI32:
+					instructions[i] = bytecode.New(bytecode.BOOLLOAD, uint64(val))
+				case bytecode.BOOLTOI32, bytecode.F64TOI32, bytecode.STRTOI32:
 					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
@@ -100,7 +100,7 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 
 					instructions[j] = bytecode.New(bytecode.NOP)
 					instructions[i] = bytecode.New(bytecode.F64LOAD, math.Float64bits(float64(val)))
-				case bytecode.BLTOSTR, bytecode.I32TOSTR, bytecode.F64TOSTR:
+				case bytecode.BOOLTOSTR, bytecode.I32TOSTR, bytecode.F64TOSTR:
 					code := bytecode.Bytecode{Constants: constants}
 					code.Emit(operand, inst)
 					if err := o.interpreter.Execute(code); err != nil {
@@ -143,7 +143,7 @@ func (o *Optimizer) fusion(instructions []bytecode.Instruction, constants []byte
 			operand2 := instructions[k]
 			if operand1.Opcode() == operand2.Opcode() {
 				switch operand1.Opcode() {
-				case bytecode.BLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
+				case bytecode.BOOLLOAD, bytecode.I32LOAD, bytecode.F64LOAD, bytecode.STRLOAD:
 					switch inst.Opcode() {
 					case bytecode.I32ADD, bytecode.I32SUB, bytecode.I32MUL, bytecode.I32DIV, bytecode.I32MOD:
 						code := bytecode.Bytecode{Constants: constants}

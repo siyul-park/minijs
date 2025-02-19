@@ -18,6 +18,9 @@ func (o *Object) Prototype() *Object {
 
 func (o *Object) Get(key Value) (Value, bool) {
 	value, ok := o.properties[key]
+	if !ok && o.prototype != nil {
+		return o.prototype.Get(key)
+	}
 	return value, ok
 }
 
@@ -26,7 +29,7 @@ func (o *Object) Set(key, val Value) {
 }
 
 func (o *Object) Type() Type {
-	return STRING
+	return OBJECT
 }
 
 func (o *Object) Interface() any {

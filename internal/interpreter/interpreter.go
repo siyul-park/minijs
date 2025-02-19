@@ -30,7 +30,10 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 	instructions := code.Instructions
 	constants := code.Constants
 
-	for ip := 0; ip < len(instructions); ip++ {
+	ip := -1
+	for ip < len(instructions)-1 {
+		ip++
+
 		opcode := bytecode.Opcode(instructions[ip])
 
 		switch opcode {
@@ -38,8 +41,6 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 		case bytecode.POP:
 			i.pop()
 		case bytecode.GLBLOAD:
-			i.push(i.global)
-		case bytecode.CTXLOAD:
 			i.push(i.global)
 		case bytecode.OBJSET:
 			val3 := i.pop()
@@ -55,14 +56,14 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 				val3 = Undefined{}
 			}
 			i.push(val3)
-		case bytecode.BLLOAD:
+		case bytecode.BOOLLOAD:
 			val := instructions[ip+1]
 			i.push(Bool(val))
 			ip += 1
-		case bytecode.BLTOI32:
+		case bytecode.BOOLTOI32:
 			val, _ := i.pop().(Bool)
 			i.push(Int32(val))
-		case bytecode.BLTOSTR:
+		case bytecode.BOOLTOSTR:
 			val, _ := i.pop().(Bool)
 			i.push(String(val.String()))
 
@@ -90,7 +91,7 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			val2, _ := i.pop().(Int32)
 			val1, _ := i.pop().(Int32)
 			i.push(val1 % val2)
-		case bytecode.I32TOBL:
+		case bytecode.I32TOBOOL:
 			val, _ := i.pop().(Int32)
 			if val > 0 {
 				val = 1
@@ -162,6 +163,9 @@ func (i *Interpreter) Execute(code bytecode.Bytecode) error {
 			}
 			return fmt.Errorf("unknown opcode: %v", typ.Mnemonic)
 		}
+
+		instructions = code.Instructions
+		constants = code.Constants
 	}
 	return nil
 }
